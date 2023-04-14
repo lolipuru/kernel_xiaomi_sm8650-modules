@@ -2,7 +2,7 @@
 /*
  * Copyright (c) 2012-2021, The Linux Foundation. All rights reserved.
  *
- * Copyright (c) 2022-2025 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.​
  */
 
 #ifndef _IPA3_I_H_
@@ -2645,9 +2645,11 @@ struct ipa3_context {
 	struct mutex recycle_stats_collection_lock;
 	struct mutex ssr_lock;
 	atomic_t is_suspend_mode_enabled;
+	bool gfp_no_retry;
 };
 
 struct ipa3_plat_drv_res {
+	bool gfp_no_retry;
 	bool use_ipa_teth_bridge;
 	u32 ipa_mem_base;
 	u32 ipa_mem_size;

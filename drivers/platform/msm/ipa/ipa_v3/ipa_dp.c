@@ -1,9 +1,7 @@
-
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (c) 2012-2021, The Linux Foundation. All rights reserved.
- *
- * Copyright (c) 2022-2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.​
  */
 #include <linux/ip.h>
 #include <linux/ipv6.h>
@@ -2713,6 +2711,11 @@ static struct page *ipa3_alloc_page(
 	if (unlikely(!page)) {
 		if (try_lower && p_order > 0) {
 			p_order = p_order - 1;
+			if (ipa3_ctx->gfp_no_retry) {
+				flag = GFP_KERNEL | __GFP_RETRY_MAYFAIL | __GFP_NOWARN
+					| __GFP_NOMEMALLOC;
+			}
+
 			page = __dev_alloc_pages(flag, p_order);
 			if (likely(page))
 				ipa3_ctx->stats.lower_order++;
@@ -2768,7 +2771,10 @@ static struct ipa3_rx_pkt_wrapper *ipa3_alloc_rx_pkt_page(
 	rx_pkt->page_data.page_order = sys->page_order;
 	/* For temporary allocations, avoid triggering OOM Killer. */
 	if (is_tmp_alloc) {
-		flag |= __GFP_RETRY_MAYFAIL | __GFP_NOWARN;
+		if (ipa3_ctx->gfp_no_retry)
+			flag |= __GFP_NORETRY | __GFP_NOWARN;
+		else
+			flag |= __GFP_RETRY_MAYFAIL | __GFP_NOWARN;
 #ifdef CONFIG_IPA_RMNET_MEM
 		rx_pkt->page_data.page = ipa3_rmnet_alloc_page(
 			flag, &rx_pkt->page_data.page_order, true);
