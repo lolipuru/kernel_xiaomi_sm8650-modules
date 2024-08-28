@@ -149,6 +149,7 @@ struct rmnet_port {
 	/* Descriptor pool */
 	spinlock_t desc_pool_lock;
 	struct rmnet_frag_descriptor_pool *frag_desc_pool;
+	struct notifier_block dfc_pm_notifier;
 };
 
 extern struct rtnl_link_ops rmnet_link_ops;
