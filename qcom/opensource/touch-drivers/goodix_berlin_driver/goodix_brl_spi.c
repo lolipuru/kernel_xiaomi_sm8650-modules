@@ -190,6 +190,17 @@ static void goodix_pdev_release(struct device *dev)
 	kfree(goodix_pdev);
 }
 
+#ifdef CONFIG_OF
+static const struct of_device_id spi_matchs[] = {
+	{.compatible = "goodix,gt9897S",},
+	{.compatible = "goodix,gt9897T",},
+	{.compatible = "goodix,gt9966S",},
+	{.compatible = "goodix,gt9916S",},
+	{.compatible = "goodix,gt9916S2",},
+	{},
+};
+#endif
+
 static int goodix_spi_probe(struct spi_device *spi)
 {
 	int ret = 0, idx;
@@ -207,7 +218,7 @@ static int goodix_spi_probe(struct spi_device *spi)
 	}
 
 	/* get ic type */
-	ret = goodix_get_ic_type(spi->dev.of_node);
+	ret = goodix_get_ic_type(spi->dev.of_node, spi_matchs);
 	if (ret < 0)
 		return ret;
 
@@ -275,17 +286,6 @@ err_pdev:
 	platform_device_unregister(goodix_pdev);
 	return 0;
 	}
-#endif
-
-#ifdef CONFIG_OF
-static const struct of_device_id spi_matchs[] = {
-	{.compatible = "goodix,gt9897S",},
-	{.compatible = "goodix,gt9897T",},
-	{.compatible = "goodix,gt9966S",},
-	{.compatible = "goodix,gt9916S",},
-	{.compatible = "goodix,gt9916S2",},
-	{},
-};
 #endif
 
 static const struct spi_device_id spi_id_table[] = {
