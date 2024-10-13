@@ -553,6 +553,10 @@ struct goodix_ts_core {
 #endif
 	bool qts_en;
 	struct mutex tui_transition_lock;
+
+	struct workqueue_struct *power_wq;
+	struct work_struct resume_work;
+	struct work_struct suspend_work;
 };
 
 /* external module structures */
