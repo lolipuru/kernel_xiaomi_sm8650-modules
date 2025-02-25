@@ -691,7 +691,6 @@ __qmi_rmnet_delete_client(void *port, struct qmi_info *qmi, int idx)
 	}
 
 	if (!qmi_rmnet_has_client(qmi) && !qmi_rmnet_has_pending(qmi)) {
-		unregister_pm_notifier(&(((struct rmnet_port *)port)->dfc_pm_notifier));
 		rmnet_reset_qmi_pt(port);
 		kfree(qmi);
 		return 0;
@@ -1543,6 +1542,8 @@ void qmi_rmnet_work_exit(void *port)
 
 	rmnet_work_quit = true;
 	synchronize_rcu();
+
+	unregister_pm_notifier(&(((struct rmnet_port *)port)->dfc_pm_notifier));
 
 	rmnet_work_inited = false;
 	cancel_delayed_work_sync(&rmnet_work->work);
