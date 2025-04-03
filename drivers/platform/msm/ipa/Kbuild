@@ -52,6 +52,8 @@ ipam-$(CONFIG_IPA_CLIENTS_MANAGER) += ipa_clients/ipa_usb.o \
 
 ipam-$(CONFIG_RNDIS_IPA) += ipa_clients/rndis_ipa.o
 
+ipam-$(CONFIG_NCM_IPA) += ipa_clients/ncm_ipa.o
+
 ipam-$(CONFIG_IPA3_MHI_PRIME_MANAGER) += ipa_v3/ipa_mpm.o
 
 ipam-$(CONFIG_IPA3_MHI_PROXY) += ipa_v3/ipa_mhi_proxy.o

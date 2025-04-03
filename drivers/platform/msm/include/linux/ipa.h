@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
  * Copyright (c) 2012-2021, The Linux Foundation. All rights reserved.
- * ​​​​Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.​
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
 #ifndef _IPA_H_
@@ -111,6 +111,7 @@ enum ipa_aggr_type {
 	IPA_GENERIC = 4,
 	IPA_COALESCE = 5,
 	IPA_QCMAP   = 6,
+	IPA_NCM_16 = 7,
 };
 
 /**
@@ -763,6 +764,7 @@ struct ipa_tx_meta {
 	bool pkt_init_dst_ep_remote;
 	dma_addr_t dma_address;
 	bool dma_address_valid;
+	bool ncm_enable;
 };
 
 /**

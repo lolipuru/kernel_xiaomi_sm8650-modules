@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only WITH Linux-syscall-note */
 /*
  * Copyright (c) 2012-2021, The Linux Foundation. All rights reserved.
- * Copyright (c) 2021-2022, 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * ​​​​Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.​
  */
 
 #ifndef _UAPI_MSM_IPA_H_
@@ -3233,11 +3233,12 @@ enum ipa_vlan_ifaces {
 	IPA_VLAN_IF_ETH0,
 	IPA_VLAN_IF_ETH1,
 	IPA_VLAN_IF_RNDIS,
-	IPA_VLAN_IF_ECM
+	IPA_VLAN_IF_ECM,
+	IPA_VLAN_IF_NCM
 };
 
 #define IPA_VLAN_IF_EMAC IPA_VLAN_IF_ETH
-#define IPA_VLAN_IF_MAX (IPA_VLAN_IF_ECM + 1)
+#define IPA_VLAN_IF_MAX (IPA_VLAN_IF_NCM + 1)
 
 /**
  * struct ipa_get_vlan_mode - get vlan mode of a Lan interface

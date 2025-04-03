@@ -2,7 +2,7 @@
 /*
  * Copyright (c) 2012-2021, The Linux Foundation. All rights reserved.
  *
- * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.​
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
 #include <linux/clk.h>
@@ -9115,20 +9115,22 @@ int ipa_set_pkt_init_ex_hdr_ofst(struct ipa_pkt_init_ex_hdr_ofst_set
 	}
 	if (proc_ctx) {
 		res = ipa3_get_hdr_proc_ctx_offset(lookup->name, &offset);
+		cmd.rt_hdr_offset = offset;
+		cmd.cs_disable = false;
 	} else {
 		res = ipa3_get_hdr_offset(lookup->name ,&offset);
+		cmd.rt_hdr_offset = (IPA_MEM_PART(modem_hdr_size) + offset) >> 2;
+		cmd.cs_disable = true;
 	}
 	if (res != 0)
 		return res;
 
-	cmd.rt_hdr_offset = offset;
 	IPADBG("cmd.rt_hdr_offset=%d\n", cmd.rt_hdr_offset);
 	cmd.frag_disable = true;
 	cmd.nat_disable = true;
 	cmd.filter_disable = true;
 	cmd.route_disable = true;
 	cmd.hdr_removal_insertion_disable = false;
-	cmd.cs_disable = false;
 	cmd.flt_retain_hdr = true;
 	cmd.rt_retain_hdr = true;
 	cmd.rt_pipe_dest_idx = dst_ep_idx;
