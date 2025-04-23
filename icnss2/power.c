@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (c) 2015-2021, The Linux Foundation. All rights reserved.
- * Copyright (c) 2023-2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 #include <linux/clk.h>
 #include <linux/delay.h>
@@ -887,7 +887,7 @@ int icnss_aop_pdc_reconfig(struct icnss_priv *priv)
 	if (priv->pdc_init_table_len <= 0 || !priv->pdc_init_table)
 		return 0;
 
-	icnss_pr_dbg("Setting PDC defaults for device ID: (0x%x)\n",
+	icnss_pr_dbg("Setting PDC defaults for device ID: (0x%lx)\n",
 		     priv->device_id);
 	for (i = 0; i < priv->pdc_init_table_len; i++) {
 		mbox_msg = (char *)priv->pdc_init_table[i];
