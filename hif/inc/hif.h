@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2013-2021 The Linux Foundation. All rights reserved.
- * Copyright (c) 2021-2025 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  *
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
@@ -773,7 +773,8 @@ static inline void hif_event_history_deinit(struct hif_opaque_softc *hif_ctx,
 
 void hif_display_ctrl_traffic_pipes_state(struct hif_opaque_softc *hif_ctx);
 
-#if defined(HIF_CONFIG_SLUB_DEBUG_ON) || defined(HIF_CE_DEBUG_DATA_BUF)
+#if defined(HIF_CONFIG_SLUB_DEBUG_ON) || defined(HIF_CE_DEBUG_DATA_BUF) ||\
+	defined(RECORD_DP_CE_EVTS)
 void hif_display_latest_desc_hist(struct hif_opaque_softc *hif_ctx);
 #else
 static
