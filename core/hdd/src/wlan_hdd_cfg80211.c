@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2012-2021 The Linux Foundation. All rights reserved.
- * Copyright (c) 2021-2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  *
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
@@ -8650,6 +8650,9 @@ const struct nla_policy wlan_hdd_wifi_config_policy[
 		.type = NLA_U16},
 	[QCA_WLAN_VENDOR_ATTR_CONFIG_REDUCED_POWER_SCAN_MODE] = {
 		.type = NLA_U8},
+	[QCA_WLAN_VENDOR_ATTR_CONFIG_FOLLOW_AP_PREFERENCE_FOR_CNDS_SELECT] = {
+		.type = NLA_U8},
+
 };
 
 #define WLAN_MAX_LINK_ID 15
@@ -12104,6 +12107,38 @@ static int hdd_set_btm_support_config(struct wlan_hdd_link_info *link_info,
 	return 0;
 }
 
+/**
+ * hdd_reset_btm_abridge_flag() - Reset the abrigde flag. Resetting this flag
+ * will reset the 7th bit i,e., WMI_ROAM_BTM_GET_CNDS_SELECT_BASED_ON_SCORE in
+ * the BTM config. This will indicate firmware to follow AP's preference values
+ * to select roam candidate rather than using internal scoring algorithm.
+ * @link_info: Link info pointer in HDD adapter
+ * @attr: pointer to nla attr
+ *
+ * Return: 0 on success, negative on failure
+ */
+static int hdd_reset_btm_abridge_flag(struct wlan_hdd_link_info *link_info,
+				      const struct nlattr *attr)
+{
+	struct hdd_context *hdd_ctx = NULL;
+	uint8_t cfg_val;
+
+	if (!attr)
+		return -EINVAL;
+
+	hdd_ctx = WLAN_HDD_GET_CTX(link_info->adapter);
+
+	cfg_val = nla_get_u8(attr);
+	hdd_debug("Reset BTM abridge flag: %d", cfg_val);
+
+	if (cfg_val)
+		wlan_mlme_set_btm_abridge_flag(hdd_ctx->psoc, false);
+	else
+		wlan_mlme_set_btm_abridge_flag(hdd_ctx->psoc, true);
+
+	return 0;
+}
+
 #ifdef WLAN_FEATURE_11BE
 /**
  * hdd_set_eht_emlsr_capability() - Set EMLSR capability for EHT STA
@@ -12623,6 +12658,8 @@ static const struct independent_setters independent_setters[] = {
 	 hdd_set_btm_support_config},
 	{QCA_WLAN_VENDOR_ATTR_CONFIG_KEEP_ALIVE_INTERVAL,
 	 hdd_vdev_set_sta_keep_alive_interval},
+	{QCA_WLAN_VENDOR_ATTR_CONFIG_FOLLOW_AP_PREFERENCE_FOR_CNDS_SELECT,
+	 hdd_reset_btm_abridge_flag},
 };
 
 #ifdef WLAN_FEATURE_ELNA
