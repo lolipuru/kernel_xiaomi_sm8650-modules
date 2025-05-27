@@ -470,9 +470,9 @@ enum wlfw_misc_req_enum_v01 {
 
 enum wlfw_target_attachment_v01 {
 	WLFW_TARGET_ATTACHMENT_MIN_VAL_V01 = INT_MIN,
-	WLFW_DEFAULT_V01 = 0,
-	WLFW_THIRD_PARTY_V01 = 1,
-	WLFW_CANOE_V01 = 2,
+	WLFW_THIRD_PARTY_V01 = 0,
+	WLFW_PDC_V01 = 1,
+	WLFW_PMIC_V01 = 2,
 	WLFW_TARGET_ATTACHMENT_MAX_VAL_V01 = INT_MAX,
 };
 
@@ -879,8 +879,6 @@ struct wlfw_cap_resp_msg_v01 {
 	u8 hwid_bitmap;
 	u8 ol_cpr_cfg_valid;
 	struct wlfw_pmu_cfg_v01 ol_cpr_cfg;
-	u8 ol_cpr_cfg_ext_valid;
-	struct wlfw_pmu_cfg_ext_v01 ol_cpr_cfg_ext;
 	u8 regdb_mandatory_valid;
 	u8 regdb_mandatory;
 	u8 regdb_support_valid;
@@ -895,6 +893,8 @@ struct wlfw_cap_resp_msg_v01 {
 	struct wlchip_serial_id_v01 serial_id;
 	u8 direct_cx_data_pin_mode_valid;
 	u8 direct_cx_data_pin_mode;
+	u8 ol_cpr_cfg_ext_valid;
+	struct wlfw_pmu_cfg_ext_v01 ol_cpr_cfg_ext;
 };
 #define WLFW_CAP_RESP_MSG_V01_MAX_MSG_LEN 2604
 extern struct qmi_elem_info wlfw_cap_resp_msg_v01_ei[];
