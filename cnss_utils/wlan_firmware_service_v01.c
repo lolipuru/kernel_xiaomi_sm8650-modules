@@ -879,7 +879,7 @@ static struct qmi_elem_info wlfw_pmu_cfg_ext_v01_ei[] = {
 	},
 	{
 		.data_type      = QMI_STRUCT,
-		.elem_len       = QMI_WLFW_PMU_PARAMS_MAX_EXT_V01,
+		.elem_len       = QMI_WLFW_PMU_PARAMS_MAX_V01,
 		.elem_size      = sizeof(struct wlfw_pmu_param_ext_v01),
 		.array_type       = VAR_LEN_ARRAY,
 		.tlv_type       = 0,

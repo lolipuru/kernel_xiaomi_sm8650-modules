@@ -141,7 +141,6 @@
 #define QMI_WLFW_MAX_NUM_GPIO_INFO_V01 20
 #define QMI_WLFW_MLO_V2_CHP_V01 4
 #define QMI_WLFW_MAX_NUM_MEM_CFG_V01 2
-#define QMI_WLFW_PMU_PARAMS_MAX_EXT_V01 25
 #define QMI_WLFW_CNSS_DAEMON_CLIENT_ID_V01 0x444d4f4e
 #define QMI_WLFW_MAX_NUM_CE_CMN_REG_V01 100
 #define QMI_WLFW_PMU_PARAMS_MAX_V01 16
@@ -640,7 +639,7 @@ struct wlfw_pmu_cfg_v01 {
 
 struct wlfw_pmu_cfg_ext_v01 {
 	u32 pmu_param_ext_len;
-	struct wlfw_pmu_param_ext_v01 pmu_param_ext[QMI_WLFW_PMU_PARAMS_MAX_EXT_V01];
+	struct wlfw_pmu_param_ext_v01 pmu_param_ext[QMI_WLFW_PMU_PARAMS_MAX_V01];
 };
 
 struct wlfw_shadow_reg_v3_cfg_s_v01 {
@@ -896,7 +895,7 @@ struct wlfw_cap_resp_msg_v01 {
 	u8 ol_cpr_cfg_ext_valid;
 	struct wlfw_pmu_cfg_ext_v01 ol_cpr_cfg_ext;
 };
-#define WLFW_CAP_RESP_MSG_V01_MAX_MSG_LEN 2604
+#define WLFW_CAP_RESP_MSG_V01_MAX_MSG_LEN 2091
 extern struct qmi_elem_info wlfw_cap_resp_msg_v01_ei[];
 
 struct wlfw_bdf_download_req_msg_v01 {
