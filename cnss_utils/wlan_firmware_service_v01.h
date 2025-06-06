@@ -130,6 +130,7 @@
 #define QMI_WLFW_MAX_HOST_DDR_RANGE_SIZE_V01 3
 #define QMI_WLFW_MAX_MLO_CHIP_V01 3
 #define QMI_WLFW_TOTAL_GPIO_CONFIG_V01 15
+#define QMI_WLFW_GPIO_INVALID_V01 0xFFFF
 #define QMI_WLFW_MAX_NUM_SHADOW_REG_V01 24
 #define QMI_WLFW_MAX_BUILD_ID_LEN_V01 128
 #define QMI_WLFW_MAX_DEV_MEM_NUM_V01 4
@@ -144,7 +145,7 @@
 #define QMI_WLFW_CNSS_DAEMON_CLIENT_ID_V01 0x444d4f4e
 #define QMI_WLFW_MAX_NUM_CE_CMN_REG_V01 100
 #define QMI_WLFW_PMU_PARAMS_MAX_V01 16
-#define QMI_INVALID_GPIO_NUM_V01 0xffff
+#define QMI_WLFW_GPIO_CONFIG_INVALID_V01 0xFF
 #define QMI_WLFW_MAX_NUM_MEM_SEG_V01 52
 #define QMI_WLFW_MAX_WFC_CALL_STATUS_DATA_SIZE_V01 256
 #define QMI_WLFW_MAX_DATA_SIZE_V01 6144
@@ -795,8 +796,10 @@ struct wlfw_wlan_cfg_req_msg_v01 {
 	u8 ce_cmn_reg_valid;
 	u32 ce_cmn_reg_len;
 	struct wlfw_ce_cmn_register_config_v01 ce_cmn_reg[QMI_WLFW_MAX_NUM_CE_CMN_REG_V01];
+	u8 chip_name_valid;
+	char chip_name[QMI_WLFW_MAX_STR_LEN_V01 + 1];
 };
-#define WLFW_WLAN_CFG_REQ_MSG_V01_MAX_MSG_LEN 2314
+#define WLFW_WLAN_CFG_REQ_MSG_V01_MAX_MSG_LEN 2333
 extern struct qmi_elem_info wlfw_wlan_cfg_req_msg_v01_ei[];
 
 struct wlfw_wlan_cfg_resp_msg_v01 {
