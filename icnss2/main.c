@@ -2008,7 +2008,8 @@ static int icnss_driver_event_early_crash_ind(struct icnss_priv *priv,
 	}
 
 	priv->early_crash_ind = true;
-	icnss_fw_crashed(priv, NULL);
+	if (!test_bit(ICNSS_PD_RESTART, &priv->state))
+		icnss_fw_crashed(priv, NULL);
 
 out:
 	kfree(data);
