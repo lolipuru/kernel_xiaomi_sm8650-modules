@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (c) 2017-2021, The Linux Foundation. All rights reserved.
- * Copyright (c) 2022-2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
 #define pr_fmt(fmt) "icnss2_qmi: " fmt
@@ -840,7 +840,7 @@ int wlfw_cap_send_sync_msg(struct icnss_priv *priv)
 		     priv->board_id, priv->soc_id);
 
 	icnss_pr_dbg("fw_version: 0x%x, fw_build_timestamp: %s,\
-		     fw_build_id: %s, fw_caps: 0x%x",
+		     fw_build_id: %s, fw_caps: 0x%llx",
 		     priv->fw_version_info.fw_version,
 		     priv->fw_version_info.fw_build_timestamp,
 		     priv->fw_build_id, priv->fw_caps);
@@ -2823,7 +2823,7 @@ static void icnss_wlfw_m3_dump_upload_segs_req_ind_cb(struct qmi_handle *qmi,
 		    segment_addr < priv->msa_pa ||
 		    ind_msg->m3_segment[i].size +
 		    segment_addr > max_mapped_addr) {
-			icnss_pr_dbg("Received out of range Segment %d Addr: 0x%llx Size: 0x%x, Name: %s, type: %d\n",
+			icnss_pr_dbg("Received out of range Segment %d Addr: 0x%llx Size: 0x%llx, Name: %s, type: %d\n",
 				     (i + 1), segment_addr,
 				     ind_msg->m3_segment[i].size,
 				     ind_msg->m3_segment[i].name,
@@ -2838,7 +2838,7 @@ static void icnss_wlfw_m3_dump_upload_segs_req_ind_cb(struct qmi_handle *qmi,
 			ind_msg->m3_segment[i].name,
 			WLFW_MAX_STR_LEN + 1);
 
-		icnss_pr_dbg("Received Segment %d Addr: 0x%llx Size: 0x%x, Name: %s, type: %d\n",
+		icnss_pr_dbg("Received Segment %d Addr: 0x%llx Size: 0x%llx, Name: %s, type: %d\n",
 			     (i + 1), segment_addr,
 			     ind_msg->m3_segment[i].size,
 			     ind_msg->m3_segment[i].name,
