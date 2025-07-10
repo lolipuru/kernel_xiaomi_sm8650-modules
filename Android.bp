@@ -2,15 +2,12 @@ headers_src = [
     "include/uapi/linux/smc*ke.h",
     "include/linux/smc*_object.h",
     "include/linux/IClientE*v.h",
-    "include/linux/smc*_clientenv.h",
 ]
 
 smcinvoke_headers_out = [
     "include/linux/smcinvoke.h",
     "include/linux/smcinvoke_object.h",
-    "include/linux/smci_object.h",
     "include/linux/IClientEnv.h",
-    "include/linux/smci_clientenv.h",
 ]
 
 smcinvoke_kernel_headers_verbose = "--verbose "
@@ -28,7 +25,7 @@ genrule {
         smcinvoke_kernel_headers_verbose +
         "--header_arch arm64 " +
         "--gen_dir $(genDir) " +
-        "--smcinvoke_headers_to_expose $(locations include/uapi/linux/smc*ke.h) $(locations include/linux/smc*_object.h) $(locations include/linux/IClientE*v.h) $(locations include/linux/smc*_clientenv.h) " +
+        "--smcinvoke_headers_to_expose $(locations include/uapi/linux/smc*ke.h) $(locations include/linux/smc*_object.h) $(locations include/linux/IClientE*v.h) " +
         "--unifdef $(location unifdef) " +
         "--headers_install $(location headers_install.sh)",
     out: smcinvoke_headers_out,
