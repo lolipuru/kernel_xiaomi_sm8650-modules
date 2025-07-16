@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2016-2021 The Linux Foundation. All rights reserved.
- * Copyright (c) 2021-2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  *
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
@@ -19808,11 +19808,16 @@ extract_roam_trigger_stats_tlv(wmi_unified_t wmi_handle, void *evt_buf,
 		return QDF_STATUS_E_FAILURE;
 	}
 
-	if (!param_buf->roam_result || idx >= param_buf->num_roam_result)
+	if (!param_buf->roam_result || idx >= param_buf->num_roam_result) {
 		wmi_err("roam_result or idx error.%u", idx);
+		return QDF_STATUS_E_FAILURE;
+	}
 
-	if (!param_buf->roam_scan_info || idx >= param_buf->num_roam_scan_info)
+	if (!param_buf->roam_scan_info ||
+	    idx >= param_buf->num_roam_scan_info) {
 		wmi_err("roam_scan_info or idx error.%u", idx);
+		return QDF_STATUS_E_FAILURE;
+	}
 
 	trig->present = true;
 
