@@ -2266,6 +2266,68 @@ struct qmi_elem_info wlfw_wlan_cfg_req_msg_v01_ei[] = {
 					   chip_name),
 	},
 	{
+		.data_type      = QMI_OPT_FLAG,
+		.elem_len       = 1,
+		.elem_size      = sizeof(u8),
+		.array_type       = NO_ARRAY,
+		.tlv_type       = 0x1A,
+		.offset         = offsetof(struct
+					   wlfw_wlan_cfg_req_msg_v01,
+					   ext_tgt_cfg_valid),
+	},
+	{
+		.data_type      = QMI_DATA_LEN,
+		.elem_len       = 1,
+		.elem_size      = sizeof(u8),
+		.array_type       = NO_ARRAY,
+		.tlv_type       = 0x1A,
+		.offset         = offsetof(struct
+					   wlfw_wlan_cfg_req_msg_v01,
+					   ext_tgt_cfg_len),
+	},
+	{
+		.data_type      = QMI_STRUCT,
+		.elem_len       = QMI_WLFW_MAX_EXT_NUM_CE_V01,
+		.elem_size      = sizeof(struct wlfw_ce_tgt_pipe_cfg_s_v01),
+		.array_type       = VAR_LEN_ARRAY,
+		.tlv_type       = 0x1A,
+		.offset         = offsetof(struct
+					   wlfw_wlan_cfg_req_msg_v01,
+					   ext_tgt_cfg),
+		.ei_array      = wlfw_ce_tgt_pipe_cfg_s_v01_ei,
+	},
+	{
+		.data_type      = QMI_OPT_FLAG,
+		.elem_len       = 1,
+		.elem_size      = sizeof(u8),
+		.array_type       = NO_ARRAY,
+		.tlv_type       = 0x1B,
+		.offset         = offsetof(struct
+					   wlfw_wlan_cfg_req_msg_v01,
+					   ext_svc_cfg_valid),
+	},
+	{
+		.data_type      = QMI_DATA_LEN,
+		.elem_len       = 1,
+		.elem_size      = sizeof(u8),
+		.array_type       = NO_ARRAY,
+		.tlv_type       = 0x1B,
+		.offset         = offsetof(struct
+					   wlfw_wlan_cfg_req_msg_v01,
+					   ext_svc_cfg_len),
+	},
+	{
+		.data_type      = QMI_STRUCT,
+		.elem_len       = QMI_WLFW_MAX_EXT_NUM_SVC_V01,
+		.elem_size      = sizeof(struct wlfw_ce_svc_pipe_cfg_s_v01),
+		.array_type       = VAR_LEN_ARRAY,
+		.tlv_type       = 0x1B,
+		.offset         = offsetof(struct
+					   wlfw_wlan_cfg_req_msg_v01,
+					   ext_svc_cfg),
+		.ei_array      = wlfw_ce_svc_pipe_cfg_s_v01_ei,
+	},
+	{
 		.data_type      = QMI_EOTI,
 		.array_type       = NO_ARRAY,
 		.tlv_type       = QMI_COMMON_TLV_TYPE,
