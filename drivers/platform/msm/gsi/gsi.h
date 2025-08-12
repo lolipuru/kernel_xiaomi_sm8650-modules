@@ -1,8 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
  * Copyright (c) 2015-2021, The Linux Foundation. All rights reserved.
- *
- * Copyright (c) 2022, 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
 #ifndef GSI_H
@@ -2501,6 +2500,15 @@ void gsi_update_almst_empty_thrshold(unsigned long chan_hdl, unsigned short thre
 * @Return void
 */
 void gsi_dump_ch_info(unsigned long chan_hdl);
+
+/**
+* gsi_dump_ch_scratch - channel scratch information.
+*
+* @chan_id: channel id
+*
+* @Return void
+*/
+void gsi_dump_ch_scratch(u32 chan_hdl);
 
 /**
  * gsi_get_hw_profiling_stats() - Query GSI HW profiling stats
