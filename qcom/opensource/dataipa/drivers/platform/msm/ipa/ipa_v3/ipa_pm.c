@@ -1140,7 +1140,6 @@ int ipa_pm_deactivate_all_deferred(void)
 		return -EINVAL;
 	}
 
-	mutex_lock(&ipa_pm_ctx->client_mutex);
 	for (i = 1; i < IPA_PM_MAX_CLIENTS; i++) {
 		client = ipa_pm_ctx->clients[i];
 
@@ -1180,7 +1179,6 @@ int ipa_pm_deactivate_all_deferred(void)
 		} else /* if activated or deactivated, we do nothing */
 			spin_unlock_irqrestore(&client->state_lock, flags);
 	}
-	mutex_unlock(&ipa_pm_ctx->client_mutex);
 
 	if (run_algorithm)
 		do_clk_scaling();
