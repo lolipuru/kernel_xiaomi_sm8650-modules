@@ -14,7 +14,7 @@
  * @evt: event enum, should be IPA_WRITE_DONE
  * @data: for tx path the data field is the sent socket buffer.
  */
-typedef void (*ipa_callback)(void *priv,
+typedef void (*ncm_ipa_callback)(void *priv,
 		enum ipa_dp_evt_type evt,
 		unsigned long data);
 
@@ -48,8 +48,8 @@ typedef void (*ipa_callback)(void *priv,
  */
 struct ipa_ncm_init_params {
 	void (*device_ready_notify)(void);
-	ipa_callback ipa_rx_notify;
-	ipa_callback ipa_tx_notify;
+	ncm_ipa_callback ipa_rx_notify;
+	ncm_ipa_callback ipa_tx_notify;
 	u8 host_ethaddr[ETH_ALEN];
 	u8 device_ethaddr[ETH_ALEN];
 	void *private;
