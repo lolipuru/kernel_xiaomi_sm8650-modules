@@ -6417,6 +6417,7 @@ typedef struct {
 #define HTT_TX_PDEV_STATS_NUM_LTF 4
 #define HTT_TX_PDEV_STATS_NUM_11AX_TRIGGER_TYPES 6
 #define HTT_TX_PDEV_STATS_NUM_11BE_TRIGGER_TYPES 6
+#define HTT_TX_PDEV_STATS_NUM_11BN_TRIGGER_TYPES 6
 #define HTT_TX_VDEV_STATS_NUM_SPATIAL_STREAMS 4
 #define HTT_TX_NUM_OF_SOUNDING_STATS_WORDS \
     (HTT_TX_PDEV_STATS_NUM_BW_COUNTERS * \
@@ -6667,7 +6668,7 @@ typedef struct {
     A_UINT32 ax_su_embedded_trigger_data_ppdu;
     /** 11AX HE SU data + embedded trigger PPDU failure stats (stats for HETP ack failure PPDU cnt) */
     A_UINT32 ax_su_embedded_trigger_data_ppdu_err;
-    /** sta side trigger stats */
+    /** STA side trigger stats */
     A_UINT32 trigger_type_11be[HTT_TX_PDEV_STATS_NUM_11BE_TRIGGER_TYPES];
     /** Stats for Extra EHT LTF */
     A_UINT32 extra_eht_ltf;
@@ -6694,6 +6695,8 @@ typedef struct {
      * element 4: 120 MHz punctured
      */
     A_UINT32 npca_tx_su_punctured_mode[HTT_TX_PDEV_STATS_NUM_PUNCTURED_MODE_COUNTERS];
+    /* STA side trigger stats */
+    A_UINT32 trigger_type_11bn[HTT_TX_PDEV_STATS_NUM_11BN_TRIGGER_TYPES];
 } htt_stats_tx_pdev_rate_stats_tlv;
 /* preserve old name alias for new name consistent with the tag name */
 typedef htt_stats_tx_pdev_rate_stats_tlv htt_tx_pdev_rate_stats_tlv;
