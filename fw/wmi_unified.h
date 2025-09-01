@@ -51459,15 +51459,39 @@ typedef struct {
     union {
         A_UINT32 peer_dyn_info2_word32;
         struct {
-            /**  1:0 pm
-             *  31:2 reserved
+            /**  0:0 pm
+             *   1:1  emlsr
+             *  17:2  padding_delay
+             *  26:18 transition_delay
+             *  30:27 transition_timeout
+             *  31    Reserved
              */
             A_UINT32
-                pm   : 1,
-                rsvd : 31;
+                pm                   :  1,
+                emlsr                :  1,
+                padding_delay_us     : 16,
+                transition_delay_us  :  9,
+                transition_timeout_us:  4,
+                rsvd1                :  1;
+        };
+    };
+    union {
+        A_UINT32 peer_dyn_info3_word32;
+        struct {
+            /** 13:0 link_bitmap
+             *  31:15 Reserved
+             */
+            A_UINT32
+                link_bitmap: 14,
+                rsvd2      : 18;
         };
     };
 } wmi_vdev_vbss_peer_dyn_info;
+
+typedef enum {
+    WMI_VBSS_UNICAST_PN_INFO         = 1,
+    WMI_VBSS_MULTICAST_PN_INFO       = 2,
+} wmi_vbss_pn_ctxt_id;
 
 typedef enum {
     WMI_VBSS_GET_PEER_CONTEXT        = 1,
@@ -51495,6 +51519,21 @@ typedef enum {
 
 #define WMI_VDEV_VBSS_DYN_INFO_GET_PM(peer_dyn_info2) WMI_GET_BITS(pm, 0, 1)
 #define WMI_VDEV_VBSS_DYN_INFO_SET_PM(peer_dyn_info2, value) WMI_SET_BITS(pm, 0, 1, value)
+
+#define WMI_VDEV_VBSS_DYN_INFO_GET_EMLSR(peer_dyn_info2) WMI_GET_BITS(emlsr, 1, 1)
+#define WMI_VDEV_VBSS_DYN_INFO_SET_EMLSR(peer_dyn_info2, value) WMI_SET_BITS(emlsr, 1, 1, value)
+
+#define WMI_VDEV_VBSS_DYN_INFO_GET_PADDING_DELAY(peer_dyn_info2) WMI_GET_BITS(padding_delay, 2, 16)
+#define WMI_VDEV_VBSS_DYN_INFO_SET_PADDING_DELAY(peer_dyn_info2, value) WMI_SET_BITS(padding_delay, 2, 16, value)
+
+#define WMI_VDEV_VBSS_DYN_INFO_GET_TRANSITION_DELAY(peer_dyn_info2) WMI_GET_BITS(transition_delay, 18, 9)
+#define WMI_VDEV_VBSS_DYN_INFO_SET_TRANSITION_DELAY(peer_dyn_info2, value) WMI_SET_BITS(transition_delay, 18, 9, value)
+
+#define WMI_VDEV_VBSS_DYN_INFO_GET_TRANSITION_TIMEOUT(peer_dyn_info2) WMI_GET_BITS(transition_timeout, 27, 4)
+#define WMI_VDEV_VBSS_DYN_INFO_SET_TRANSITION_TIMEOUT(peer_dyn_info2, value) WMI_SET_BITS(transition_timeout, 27, 4, value)
+
+#define WMI_VDEV_VBSS_DYN_INFO_GET_LINK_BITMAP(peer_dyn_info3) WMI_GET_BITS(link_bitmap, 0, 14)
+#define WMI_VDEV_VBSS_DYN_INFO_SET_LINK_BITMAP(peer_dyn_info3, value) WMI_SET_BITS(link_bitmap, 0, 14, value)
 
 
 typedef struct {
