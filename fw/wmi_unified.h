@@ -732,6 +732,7 @@ typedef enum {
 
     WMI_VDEV_VBSS_CONFIG_CMDID,
 
+    WMI_VDEV_GET_TPC_IE_POWER_CMDID,
 
     /* peer specific commands */
 
@@ -2028,6 +2029,7 @@ typedef enum {
     /** Connect response */
     WMI_VDEV_OOB_CONNECTION_RESP_EVENTID,
     WMI_VDEV_VBSS_CONFIG_EVENTID,
+    WMI_VDEV_TPC_IE_POWER_EVENTID,
 
     /* peer specific events */
     /** FW reauet to kick out the station for reasons like inactivity,lack of response ..etc */
@@ -10314,6 +10316,23 @@ typedef struct {
     /** parameter   */
     A_UINT32 param;
 } wmi_pdev_get_tpc_config_cmd_fixed_param;
+
+typedef struct {
+    A_UINT32 tlv_header; /* TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_vdev_get_tpc_ie_power_cmd_fixed_param */
+    /** pdev_id for identifying the MAC
+     * See macros starting with WMI_PDEV_ID_ for values.
+     */
+    A_UINT32 pdev_id;
+    A_UINT32 vdev_id;
+    A_UINT32 mgmt_rate; /* Values are sent as Ratecode */
+} wmi_vdev_get_tpc_ie_power_cmd_fixed_param;
+
+typedef struct {
+    A_UINT32 tlv_header; /* TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_vdev_tpc_ie_power_event_fixed_param */
+    A_UINT32 pdev_id;
+    A_UINT32 vdev_id;
+    A_INT32 tx_pwr; /* return value will be in unit of 0.25 dBm */
+} wmi_vdev_tpc_ie_power_event_fixed_param;
 
 typedef struct {
     A_UINT32 tlv_header; /* WMITLV_TAG_STRUC_wmi_pdev_div_get_rssi_antid_fixed_param */
@@ -39613,6 +39632,7 @@ static INLINE A_UINT8 *wmi_id_to_name(A_UINT32 wmi_command)
         WMI_RETURN_STRING(WMI_ENERGY_MGMT_PUO_CONFIG_CMDID);
         WMI_RETURN_STRING(WMI_ENERGY_MGMT_ECO_MODE_CONFIG_CMDID);
         WMI_RETURN_STRING(WMI_PEER_TID_RATE_CUSTOM_CMDID);
+        WMI_RETURN_STRING(WMI_VDEV_GET_TPC_IE_POWER_CMDID);
     }
 
     return (A_UINT8 *) "Invalid WMI cmd";

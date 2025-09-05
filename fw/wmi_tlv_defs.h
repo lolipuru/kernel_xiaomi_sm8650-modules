@@ -1507,6 +1507,8 @@ typedef enum {
     WMITLV_TAG_STRUC_wmi_pdev_multi_vdev_get_ac_queue_depth_cmd_fixed_param,
     WMITLV_TAG_STRUC_wmi_pdev_multi_vdev_ac_queue_depth_event_fixed_param,
     WMITLV_TAG_STRUC_wmi_vdev_ac_info,
+    WMITLV_TAG_STRUC_wmi_vdev_get_tpc_ie_power_cmd_fixed_param,
+    WMITLV_TAG_STRUC_wmi_vdev_tpc_ie_power_event_fixed_param,
 } WMITLV_TAG_ID;
 /*
  * IMPORTANT: Please add _ALL_ WMI Commands Here.
@@ -2082,6 +2084,7 @@ typedef enum {
     OP(WMI_PDEV_NPCA_AP_CAP_CMDID) \
     OP(WMI_PEER_NPCA_CAP_CMDID) \
     OP(WMI_PDEV_MULTI_VDEV_GET_AC_QUEUE_DEPTH_CMDID) \
+    OP(WMI_VDEV_GET_TPC_IE_POWER_CMDID) \
     /* add new CMD_LIST elements above this line */
 
 
@@ -2421,6 +2424,7 @@ typedef enum {
     OP(WMI_PDEV_SUSPEND_EVENTID) \
     OP(WMI_PDEV_NPCA_AP_CAP_RESP_EVENTID) \
     OP(WMI_PDEV_MULTI_VDEV_AC_QUEUE_DEPTH_EVENTID) \
+    OP(WMI_VDEV_TPC_IE_POWER_EVENTID) \
     /* add new EVT_LIST elements above this line */
 
 
@@ -5056,6 +5060,12 @@ WMITLV_CREATE_PARAM_STRUC(WMI_RUNTIME_DPD_RECAL_CMDID);
 
 WMITLV_CREATE_PARAM_STRUC(WMI_GET_TPC_POWER_CMDID);
 
+/** Get TPC IE TX power value */
+#define WMITLV_TABLE_WMI_VDEV_GET_TPC_IE_POWER_CMDID(id,op,buf,len) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_vdev_get_tpc_ie_power_cmd_fixed_param, wmi_vdev_get_tpc_ie_power_cmd_fixed_param, fixed_param, WMITLV_SIZE_FIX)
+
+WMITLV_CREATE_PARAM_STRUC(WMI_VDEV_GET_TPC_IE_POWER_CMDID);
+
 /* TWT enable cmd */
 #define WMITLV_TABLE_WMI_TWT_ENABLE_CMDID(id,op,buf,len) \
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_twt_enable_cmd_fixed_param, wmi_twt_enable_cmd_fixed_param, fixed_param, WMITLV_SIZE_FIX)
@@ -7184,6 +7194,10 @@ WMITLV_CREATE_PARAM_STRUC(WMI_PDEV_ANI_OFDM_LEVEL_EVENTID);
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_pdev_tpc_event_fixed_param, wmi_pdev_tpc_event_fixed_param, fixed_param, WMITLV_SIZE_FIX)\
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_UINT32, A_UINT32, tpc, WMITLV_SIZE_VAR)
 WMITLV_CREATE_PARAM_STRUC(WMI_PDEV_TPC_EVENTID);
+
+#define WMITLV_TABLE_WMI_VDEV_TPC_IE_POWER_EVENTID(id,op,buf,len) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_vdev_tpc_ie_power_event_fixed_param, wmi_vdev_tpc_ie_power_event_fixed_param, fixed_param, WMITLV_SIZE_FIX)
+WMITLV_CREATE_PARAM_STRUC(WMI_VDEV_TPC_IE_POWER_EVENTID);
 
 #define WMITLV_TABLE_WMI_PDEV_NFCAL_POWER_ALL_CHANNELS_EVENTID(id,op,buf,len) \
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_pdev_nfcal_power_all_channels_event_fixed_param, wmi_pdev_nfcal_power_all_channels_event_fixed_param, fixed_param, WMITLV_SIZE_FIX) \
