@@ -42708,6 +42708,7 @@ typedef enum wmi_roam_invoke_status_error {
     WMI_ROAM_INVOKE_STATUS_INVALID_SCAN_MODE,      /* Roam scan mode is invalid */
     WMI_ROAM_INVOKE_STATUS_NO_CAND_AP,             /* No candidate AP found to roam to */
     WMI_ROAM_INVOKE_STATUS_HO_FAIL,                /* handoff failed */
+    WMI_ROAM_INVOKE_STATUS_SUSTAIN_CONN,           /* Sustain existing connection when MLD self roaming fails */
 } wmi_roam_invoke_status_error_t;
 
 typedef struct {
