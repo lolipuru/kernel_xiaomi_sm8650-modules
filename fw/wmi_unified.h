@@ -26992,6 +26992,14 @@ typedef enum
      */
     WMI_VENDOR_OUI_ACTION_DISABLE_DYNAMIC_SMPS = 18,
 
+    /*
+     * Keep sending qos null frame on P2P interface when final bmiss is
+     * detected, if specific vendor OUI matches.
+     * If an ACK is received, suppress reporting the final beacon miss
+     * to the host to avoid triggering a disconnect.
+     */
+    WMI_VENDOR_OUI_ACTION_FORCE_TX_NULL_FRAME_ON_P2P = 19,
+
 
     /* Add any action before this line */
     WMI_VENDOR_OUI_ACTION_MAX_ACTION_ID
