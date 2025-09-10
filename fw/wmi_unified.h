@@ -10322,18 +10322,18 @@ typedef struct {
 
 typedef struct {
     A_UINT32 tlv_header; /* TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_vdev_get_tpc_ie_power_cmd_fixed_param */
+    A_UINT32 vdev_id;
     /** pdev_id for identifying the MAC
      * See macros starting with WMI_PDEV_ID_ for values.
      */
     A_UINT32 pdev_id;
-    A_UINT32 vdev_id;
     A_UINT32 mgmt_rate; /* Values are sent as Ratecode */
 } wmi_vdev_get_tpc_ie_power_cmd_fixed_param;
 
 typedef struct {
     A_UINT32 tlv_header; /* TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_vdev_tpc_ie_power_event_fixed_param */
-    A_UINT32 pdev_id;
     A_UINT32 vdev_id;
+    A_UINT32 pdev_id;
     A_INT32 tx_pwr; /* return value will be in unit of 0.25 dBm */
 } wmi_vdev_tpc_ie_power_event_fixed_param;
 
