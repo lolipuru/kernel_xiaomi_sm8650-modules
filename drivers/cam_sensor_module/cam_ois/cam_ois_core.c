@@ -422,6 +422,8 @@ static int cam_ois_parse_fw_setting(uint8_t *cmd_buf, uint32_t size,
 	uint16_t                op_code;
 	uint32_t                j = 0;
 	struct list_head       *list = NULL;
+	uint32_t                payload_count = 0;
+	size_t                  tot_size = 0;
 
 	while (byte_cnt < size) {
 		if ((size - byte_cnt) < sizeof(struct common_header)) {
@@ -440,6 +442,7 @@ static int cam_ois_parse_fw_setting(uint8_t *cmd_buf, uint32_t size,
 			struct cam_cmd_i2c_random_wr
 			*cam_cmd_i2c_random_wr =
 			(struct cam_cmd_i2c_random_wr *)cmd_buf;
+			payload_count = cam_cmd_i2c_random_wr->header.count;
 
 			if ((size - byte_cnt) < sizeof(struct cam_cmd_i2c_random_wr)) {
 				CAM_ERR(CAM_OIS,
@@ -448,11 +451,22 @@ static int cam_ois_parse_fw_setting(uint8_t *cmd_buf, uint32_t size,
 				rc = -EINVAL;
 				goto end;
 			}
+			tot_size = sizeof(struct i2c_rdwr_header) +
+			(sizeof(struct i2c_random_wr_payload) *
+			payload_count);
+
+			if (tot_size > (size - byte_cnt)) {
+				CAM_ERR(CAM_SENSOR_UTIL,
+				"Not enough buffer provided %d, %d, %d",
+				tot_size, size, byte_cnt);
+				rc = -EINVAL;
+				goto end;
+			}
 
 			rc = cam_sensor_handle_random_write(
 				cam_cmd_i2c_random_wr,
 				reg_settings,
-				&cmd_length_in_bytes, &j, &list);
+				&cmd_length_in_bytes, &j, &list, payload_count);
 			if (rc < 0) {
 				CAM_ERR(CAM_OIS,
 				"Failed in random write %d", rc);
@@ -469,7 +483,7 @@ static int cam_ois_parse_fw_setting(uint8_t *cmd_buf, uint32_t size,
 			struct cam_cmd_i2c_continuous_wr
 			*cam_cmd_i2c_continuous_wr =
 			(struct cam_cmd_i2c_continuous_wr *)cmd_buf;
-
+			payload_count = cam_cmd_i2c_continuous_wr->header.count;
 			if ((size - byte_cnt) < sizeof(struct cam_cmd_i2c_continuous_wr)) {
 				CAM_ERR(CAM_OIS,
 					"Not enough buffer provided,size %d,byte_cnt %d",
@@ -477,11 +491,22 @@ static int cam_ois_parse_fw_setting(uint8_t *cmd_buf, uint32_t size,
 				rc = -EINVAL;
 				goto end;
 			}
+			tot_size = sizeof(struct i2c_rdwr_header) +
+			sizeof(cam_cmd_i2c_continuous_wr->reg_addr) +
+			(sizeof(struct cam_cmd_read) *
+			payload_count);
 
+			if (tot_size > (size - byte_cnt)) {
+				CAM_ERR(CAM_SENSOR_UTIL,
+				"Not enough buffer provided %d, %d, %d",
+				tot_size, size, byte_cnt);
+				rc = -EINVAL;
+				goto end;
+			}
 			rc = cam_sensor_handle_continuous_write(
 				cam_cmd_i2c_continuous_wr,
 				reg_settings,
-				&cmd_length_in_bytes, &j, &list);
+				&cmd_length_in_bytes, &j, &list, payload_count);
 			if (rc < 0) {
 				CAM_ERR(CAM_OIS,
 				"Failed in continuous write %d", rc);
@@ -546,7 +571,7 @@ static int cam_ois_parse_fw_setting(uint8_t *cmd_buf, uint32_t size,
 			uint16_t cmd_length_in_bytes = 0;
 			struct cam_cmd_i2c_random_rd *i2c_random_rd =
 			(struct cam_cmd_i2c_random_rd *)cmd_buf;
-
+			payload_count = i2c_random_rd->header.count;
 			if ((size - byte_cnt) < sizeof(struct cam_cmd_i2c_random_rd)) {
 				CAM_ERR(CAM_OIS,
 					"Not enough buffer provided,size %d,byte_cnt %d",
@@ -555,11 +580,21 @@ static int cam_ois_parse_fw_setting(uint8_t *cmd_buf, uint32_t size,
 				goto end;
 			}
 
+			tot_size = sizeof(struct i2c_rdwr_header) +
+			(sizeof(struct cam_cmd_read) *
+			payload_count);
+			if (tot_size > (size - byte_cnt)) {
+				CAM_ERR(CAM_SENSOR_UTIL,
+				"Not enough buffer provided %d, %d, %d",
+				tot_size, size, byte_cnt);
+				rc = -EINVAL;
+				goto end;
+			}
 			rc = cam_sensor_handle_random_read(
 				i2c_random_rd,
 				reg_settings,
 				&cmd_length_in_bytes, &j, &list,
-				NULL);
+				NULL, payload_count);
 			if (rc < 0) {
 				CAM_ERR(CAM_OIS,
 				"Failed in random read %d", rc);
