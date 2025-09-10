@@ -126,7 +126,9 @@ def define_modules(target, variant):
             "drivers/platform/msm/ipa/ipa_clients/ipa_wdi3.c",
             "drivers/platform/msm/ipa/ipa_clients/ipa_wigig.c",
             "drivers/platform/msm/ipa/ipa_clients/rndis_ipa.h",
+            "drivers/platform/msm/ipa/ipa_clients/ncm_ipa.h",
             "drivers/platform/msm/ipa/ipa_clients/rndis_ipa_trace.h",
+            "drivers/platform/msm/ipa/ipa_clients/ncm_ipa_trace.h",
             "drivers/platform/msm/ipa/ipa_v3/ipahal/ipahal.c",
             "drivers/platform/msm/ipa/ipa_v3/ipahal/ipahal.h",
             "drivers/platform/msm/ipa/ipa_v3/ipahal/ipahal_fltrt.c",
@@ -197,6 +199,11 @@ def define_modules(target, variant):
                     "drivers/platform/msm/ipa/ipa_clients/rndis_ipa.c",
                 ],
             },
+            "CONFIG_NCM_IPA": {
+                True: [
+                    "drivers/platform/msm/ipa/ipa_clients/ncm_ipa.c",
+                ],
+            },
             "CONFIG_IPA_UT": {
                 True: [
                     "drivers/platform/msm/ipa/test/ipa_ut_framework.c",
@@ -224,6 +231,7 @@ def define_modules(target, variant):
             "GSI_TRACE_INCLUDE_PATH={}/drivers/platform/msm/gsi".format(include_base),
             "IPA_TRACE_INCLUDE_PATH={}/drivers/platform/msm/ipa/ipa_v3".format(include_base),
             "RNDIS_TRACE_INCLUDE_PATH={}/drivers/platform/msm/ipa/ipa_clients".format(include_base),
+            "NCM_TRACE_INCLUDE_PATH={}/drivers/platform/msm/ipa/ipa_clients".format(include_base),
         ] + ipam_local_defines,
         kernel_build = "//msm-kernel:{}".format(kernel_build_variant),
         deps = [
