@@ -1252,6 +1252,12 @@ static int sde_encoder_phys_wb_atomic_check(struct sde_encoder_phys *phys_enc,
 		return -EINVAL;
 	}
 
+	if (phys_enc->parent->crtc != NULL && phys_enc->parent->crtc != crtc_state->crtc) {
+		SDE_ERROR("invalid crtc_id:%d connected to wb:%d, expected crtc_id:%d\n",
+			DRMID(phys_enc->parent->crtc), WBID(wb_enc), DRMID(crtc_state->crtc));
+		return -EAGAIN;
+	}
+
 	memset(&wb_roi, 0, sizeof(struct sde_rect));
 
 	rc = sde_wb_connector_state_get_output_roi(conn_state, &wb_roi);
