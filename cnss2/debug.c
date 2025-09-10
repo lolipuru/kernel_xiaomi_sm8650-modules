@@ -1001,7 +1001,7 @@ static const struct file_operations cnss_smmu_fault_timestamp_fops = {
 	.llseek = seq_lseek,
 };
 
-#ifdef CONFIG_DEBUG_FS
+#if defined(CONFIG_DEBUG_FS) && !defined(CONFIG_DEBUG_FS_ALLOW_NONE)
 #ifdef CONFIG_CNSS2_DEBUG
 static int cnss_create_debug_only_node(struct cnss_plat_data *plat_priv)
 {
