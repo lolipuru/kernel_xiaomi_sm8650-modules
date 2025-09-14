@@ -115,6 +115,8 @@ extern "C" {
         }
 #endif
 
+#define WMI_MAX_NUM_EXT_TLVS 50
+
 #define ATH_MAC_LEN             6               /**< length of MAC in bytes */
 #define WMI_EVENT_STATUS_SUCCESS 0 /* Success return status to host */
 #define WMI_EVENT_STATUS_FAILURE 1 /* Failure return status to host */
@@ -866,6 +868,9 @@ typedef enum {
 
     /** Peer NPCA CAP Command **/
     WMI_PEER_NPCA_CAP_CMDID,
+
+    /* WMI_PEER_ASSOC_V2_CMDID: extended alternative for WMI_PEER_ASSOC_CMDID */
+    WMI_PEER_ASSOC_V2_CMDID,
 
     /* beacon/management specific commands */
 
@@ -22410,13 +22415,23 @@ typedef struct {
 #define WMI_ASSOC_FLAG_FLUSH_PEER_DATA_GET(assoc_flags) WMI_GET_BITS(assoc_flags, 0, 1)
 #define WMI_ASSOC_FLAG_FLUSH_PEER_DATA_SET(assoc_flags, value) WMI_GET_BITS(assoc_flags, 0, 1, value)
 
+enum wmi_peer_new_assoc {
+    WMI_PEER_REASSOC = 0,      /* Peer Reassoc */
+    WMI_PEER_ASSOC = 1,        /* Peer Assoc */
+    WMI_PEER_CREATE_ASSOC = 2, /* Peer Create and Peer Assoc in single command,
+                                * currently used for SMD case */
+
+    /* Host <-> Target Peer New Assoc is assigned up to 127 */
+    WMI_PEER_NEW_ASSOC_MAX = 127
+};
+
 typedef struct {
     A_UINT32 tlv_header; /** TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_peer_assoc_complete_cmd_fixed_param */
     /** peer MAC address */
     wmi_mac_addr peer_macaddr;
     /** VDEV id */
     A_UINT32 vdev_id;
-    /** assoc = 1 reassoc = 0 */
+    /* enum wmi_peer_new_assoc: create_assoc = 2, assoc = 1, reassoc = 0 */
     A_UINT32 peer_new_assoc;
     /** peer associd (16 bits) */
     A_UINT32 peer_associd;
@@ -22550,6 +22565,23 @@ typedef struct {
      */
     A_UINT32 max_downlink_nss;
 
+    /** Peer create flags */
+    union {
+        struct {
+            A_UINT32 hw_peer_id_valid : 1,
+                     peer_type_valid  : 1,
+                     reserved         :30;
+        };
+        A_UINT32 flags;
+    };
+    /** Global sw peer id, valid only if non-zero */
+    A_UINT32 sw_peer_id;
+    /** Global hardware id, valid only if hw_peer_id_valid is set */
+    A_UINT32 hw_peer_id;
+    /** peer type: see enum values above */
+    A_UINT32 peer_type;
+
+
 /* Following this struct are the TLV's:
  *     A_UINT8 peer_legacy_rates[];
  *     A_UINT8 peer_ht_rates[];
@@ -22563,10 +22595,22 @@ typedef struct {
  *     wmi_peer_assoc_tid_to_link_map[] <-- tid to link_map info
  *     wmi_peer_assoc_operating_mode_params <-- operating mode param that
  *         host sends to AP in peer assoc req, optional TLV
+ * --- the below only apply to WMI_PEER_ASSOC_V2_CMD, not WMI_PEER_ASSOC_CMDID
  *     wmi_peer_npca_cap_params peer_npca_cap_params[]; <-- peer NPCA
  *         capabilities, host sends NPCA peer capabilities as an optional TLV
+ *     wmi_peer_create_mlo_params mlo_params[]; <-- MLO flags on peer_create
+ *         Optional TLV, only present for MLO peers.
+ *         If the peer is non-MLO, the array length should be 0.
+ *         Only mlo_enable flag required by MCC to decide MAC address
+ *         to be used.
  */
 } wmi_peer_assoc_complete_cmd_fixed_param;
+
+#define WMI_PEER_ASSOC_COMPLETE_CMD_FLAG_HW_PEER_ID_VALID_GET(flags) WMI_GET_BITS(flags, 0, 1)
+#define WMI_PEER_ASSOC_COMPLETE_CMD_FLAG_HW_PEER_ID_VALID_SET(flags, value) WMI_GET_BITS(flags, 0, 1, value)
+
+#define WMI_PEER_ASSOC_COMPLETE_CMD_FLAG_PEER_TYPE_VALID_GET(flags) WMI_GET_BITS(flags, 1, 1)
+#define WMI_PEER_ASSOC_COMPLETE_CMD_FLAG_PEER_TYPE_VALID_SET(flags, value) WMI_GET_BITS(flags, 1, 1, value)
 
 typedef struct {
     A_UINT32 tlv_header; /* TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_peer_npca_cap_params*/

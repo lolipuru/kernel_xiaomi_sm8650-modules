@@ -2086,6 +2086,7 @@ typedef enum {
     OP(WMI_PEER_NPCA_CAP_CMDID) \
     OP(WMI_PDEV_MULTI_VDEV_GET_AC_QUEUE_DEPTH_CMDID) \
     OP(WMI_VDEV_GET_TPC_IE_POWER_CMDID) \
+    OP(WMI_PEER_ASSOC_V2_CMDID) \
     /* add new CMD_LIST elements above this line */
 
 
@@ -2929,8 +2930,35 @@ WMITLV_CREATE_PARAM_STRUC(WMI_VDEV_IPSEC_NATKEEPALIVE_FILTER_CMDID);
 /* NOTE:
  * No further TLVs can be added to this message;
  * it is already at the target's WMI_MAX_NUM_TLVS limit (13).
+ *
+ * Note that the WMI_PEER_ASSOC_V2_CMDID (below) can support additional TLVs.
  */
 WMITLV_CREATE_PARAM_STRUC(WMI_PEER_ASSOC_CMDID);
+
+/* Peer Assoc EXT Cmd
+ * This cmd message mirrors the WMI_PEER_ASSOC_CMDID message, but has the
+ * capacity for extra TLVs beyond those in the WMI_PEER_ASSOC_CMDID definition.
+ * This message can only be used if the target advertises support for
+ * WMI_MAX_NUM_EXT_TLVS (via the WMI_SERVICE_EXT_TLV_SUPPORT flag).
+ */
+#define WMITLV_TABLE_WMI_PEER_ASSOC_V2_CMDID(id,op,buf,len) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_peer_assoc_complete_cmd_fixed_param, wmi_peer_assoc_complete_cmd_fixed_param, fixed_param, WMITLV_SIZE_FIX) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_BYTE, A_UINT8, peer_legacy_rates, WMITLV_SIZE_VAR) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_BYTE, A_UINT8, peer_ht_rates, WMITLV_SIZE_VAR) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_vht_rate_set, wmi_vht_rate_set, peer_vht_rates, WMITLV_SIZE_FIX) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_STRUC, wmi_he_rate_set, peer_he_rates, WMITLV_SIZE_VAR) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_STRUC, wmi_peer_assoc_mlo_params, mlo_params, WMITLV_SIZE_VAR) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_STRUC, wmi_eht_rate_set, peer_eht_rates, WMITLV_SIZE_VAR) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_STRUC, wmi_peer_assoc_mlo_partner_link_params, partner_link_params, WMITLV_SIZE_VAR) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_STRUC, wmi_peer_assoc_tid_to_link_map, peer_tid_to_link_map, WMITLV_SIZE_VAR) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_STRUC, wmi_peer_assoc_operating_mode_params, operating_mode_params, WMITLV_SIZE_VAR) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_STRUC, wmi_peer_assoc_mgmt_mpduq_params, mgmt_mpduq_params, WMITLV_SIZE_VAR) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_STRUC, wmi_peer_assoc_mgmt_msduq_params, mgmt_msduq_params, WMITLV_SIZE_VAR) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_STRUC, wmi_peer_assoc_hol_mdsuq_params, hol_mdsuq_params, WMITLV_SIZE_VAR)\
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_STRUC, wmi_peer_npca_cap_params, peer_npca_cap_params, WMITLV_SIZE_VAR)\
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_STRUC, wmi_peer_create_mlo_params, create_mlo_params, WMITLV_SIZE_VAR)
+
+WMITLV_CREATE_PARAM_STRUC(WMI_PEER_ASSOC_V2_CMDID);
 
 /* Peer Set Rate Report Condition Cmd */
 #define WMITLV_TABLE_WMI_PEER_SET_RATE_REPORT_CONDITION_CMDID(id,op,buf,len) \
