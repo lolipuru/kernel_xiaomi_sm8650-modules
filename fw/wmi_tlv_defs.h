@@ -1510,6 +1510,7 @@ typedef enum {
     WMITLV_TAG_STRUC_wmi_vdev_get_tpc_ie_power_cmd_fixed_param,
     WMITLV_TAG_STRUC_wmi_vdev_tpc_ie_power_event_fixed_param,
     WMITLV_TAG_STRUC_wmi_pdev_coex_stats,
+    WMITLV_TAG_STRUC_wmi_vdev_traffic_monitoring_cmd_fixed_param,
 } WMITLV_TAG_ID;
 /*
  * IMPORTANT: Please add _ALL_ WMI Commands Here.
@@ -2087,6 +2088,7 @@ typedef enum {
     OP(WMI_PDEV_MULTI_VDEV_GET_AC_QUEUE_DEPTH_CMDID) \
     OP(WMI_VDEV_GET_TPC_IE_POWER_CMDID) \
     OP(WMI_PEER_ASSOC_V2_CMDID) \
+    OP(WMI_VDEV_TRAFFIC_MONITORING_CMDID) \
     /* add new CMD_LIST elements above this line */
 
 
@@ -2935,7 +2937,7 @@ WMITLV_CREATE_PARAM_STRUC(WMI_VDEV_IPSEC_NATKEEPALIVE_FILTER_CMDID);
  */
 WMITLV_CREATE_PARAM_STRUC(WMI_PEER_ASSOC_CMDID);
 
-/* Peer Assoc EXT Cmd
+/* WMI_PEER_ASSOC_V2_CMD - version 2 of the PEER_ASSOC cmd, allowing more TLVs
  * This cmd message mirrors the WMI_PEER_ASSOC_CMDID message, but has the
  * capacity for extra TLVs beyond those in the WMI_PEER_ASSOC_CMDID definition.
  * This message can only be used if the target advertises support for
@@ -5912,6 +5914,11 @@ WMITLV_CREATE_PARAM_STRUC(WMI_PEER_TID_RATE_CUSTOM_CMDID);
 #define WMITLV_TABLE_WMI_PDEV_MULTI_VDEV_GET_AC_QUEUE_DEPTH_CMDID(id,op,buf,len) \
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_pdev_multi_vdev_get_ac_queue_depth_cmd_fixed_param, wmi_pdev_multi_vdev_get_ac_queue_depth_cmd_fixed_param, fixed_param, WMITLV_SIZE_FIX)
 WMITLV_CREATE_PARAM_STRUC(WMI_PDEV_MULTI_VDEV_GET_AC_QUEUE_DEPTH_CMDID);
+
+/* vdev traffic monitoring request cmd */
+#define WMITLV_TABLE_WMI_VDEV_TRAFFIC_MONITORING_CMDID(id,op,buf,len) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_vdev_traffic_monitoring_cmd_fixed_param, wmi_vdev_traffic_monitoring_cmd_fixed_param, fixed_param, WMITLV_SIZE_FIX)
+WMITLV_CREATE_PARAM_STRUC(WMI_VDEV_TRAFFIC_MONITORING_CMDID);
 
 
 

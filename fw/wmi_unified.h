@@ -736,6 +736,9 @@ typedef enum {
 
     WMI_VDEV_GET_TPC_IE_POWER_CMDID,
 
+    /** data traffic monitoring */
+    WMI_VDEV_TRAFFIC_MONITORING_CMDID,
+
     /* peer specific commands */
 
     /** create a peer */
@@ -39703,6 +39706,7 @@ static INLINE A_UINT8 *wmi_id_to_name(A_UINT32 wmi_command)
         WMI_RETURN_STRING(WMI_ENERGY_MGMT_ECO_MODE_CONFIG_CMDID);
         WMI_RETURN_STRING(WMI_PEER_TID_RATE_CUSTOM_CMDID);
         WMI_RETURN_STRING(WMI_VDEV_GET_TPC_IE_POWER_CMDID);
+        WMI_RETURN_STRING(WMI_VDEV_TRAFFIC_MONITORING_CMDID);
     }
 
     return (A_UINT8 *) "Invalid WMI cmd";
@@ -51755,6 +51759,18 @@ typedef struct {
      *     wmi_vdev_ac_info vdev_ac_info[];   wmi_vdev_ac_info for BE/BK/VI/VO
      */
 } wmi_pdev_multi_vdev_ac_queue_depth_event_fixed_param;
+
+typedef struct {
+    /** TLV tag and len; tag equals
+     * WMITLV_TAG_STRUC_wmi_vdev_traffic_monitoring_cmd_fixed_param */
+    A_UINT32 tlv_header;
+    /* VDEV identifier */
+    A_UINT32 vdev_id;
+    /** TX RX packet count threshold value */
+    A_UINT32 data_threshold;
+    /** duration of traffic monitoring, in unit of sec */
+    A_UINT32 traffic_monitoring_time;
+} wmi_vdev_traffic_monitoring_cmd_fixed_param;
 
 
 
