@@ -725,6 +725,7 @@ typedef  enum  {
     WMI_SERVICE_NPCA_SUPPORT = 464, /* Indicates FW supports NPCA (Non-Primary Channel Access) */
     WMI_SERVICE_EXT_TLV_SUPPORT = 465, /* FW supports WMI_MAX_NUM_EXT_TLVS */
     WMI_SERVICE_VDEV_TRAFFIC_MONITORING = 466, /* FW supports traffic monitoring */
+    WMI_SERVICE_EM_DPS_ASSISTING_ROLE_SUPPORT = 467, /* Indicates support for Energy Mgmt DPS assisting role operation */
 
 
     WMI_MAX_EXT2_SERVICE

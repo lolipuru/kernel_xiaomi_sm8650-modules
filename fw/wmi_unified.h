@@ -1767,6 +1767,8 @@ typedef enum {
     WMI_ENERGY_MGMT_PUO_CONFIG_CMDID,
     /** WMI cmd used to control ECO mode config */
     WMI_ENERGY_MGMT_ECO_MODE_CONFIG_CMDID,
+    /** WMI cmd used to control DPS Assisting AP role config */
+    WMI_ENERGY_MGMT_DPS_ASSISTING_ROLE_CONFIG_CMDID,
 } WMI_CMD_ID;
 
 typedef enum {
@@ -39707,6 +39709,7 @@ static INLINE A_UINT8 *wmi_id_to_name(A_UINT32 wmi_command)
         WMI_RETURN_STRING(WMI_PEER_TID_RATE_CUSTOM_CMDID);
         WMI_RETURN_STRING(WMI_VDEV_GET_TPC_IE_POWER_CMDID);
         WMI_RETURN_STRING(WMI_VDEV_TRAFFIC_MONITORING_CMDID);
+        WMI_RETURN_STRING(WMI_ENERGY_MGMT_DPS_ASSISTING_ROLE_CONFIG_CMDID);
     }
 
     return (A_UINT8 *) "Invalid WMI cmd";
@@ -51772,6 +51775,18 @@ typedef struct {
     A_UINT32 traffic_monitoring_time;
 } wmi_vdev_traffic_monitoring_cmd_fixed_param;
 
+typedef enum {
+    WMI_DPS_ASSISTING_ROLE_DISABLE, /* Disable - DPS: AP Assisting role */
+    WMI_DPS_ASSISTING_ROLE_ENABLE,  /* Enable  - DPS: AP Assisting role */
+} wmi_dps_assisting_role_e;
+
+typedef struct {
+    /** TLV tag and len; tag equals
+    * WMITLV_TAG_STRUC_wmi_energy_mgmt_dps_assisting_role_config_cmd_fixed_param */
+    A_UINT32 tlv_header;
+    /** holds a wmi_dps_assisting_role_e value */
+    A_UINT32 config;
+} wmi_energy_mgmt_dps_assisting_role_config_cmd_fixed_param;
 
 
 
