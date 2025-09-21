@@ -919,6 +919,25 @@ typedef enum {
      * TLV: htt_tx_pdev_ul_be_mu_ofdma_sch_stats_tlv
      */
     HTT_UPLOAD_BE_UL_MU_OFDMA_STATS,
+
+    /*
+     * Upload BN UL MU-OFDMA + BN DL MU-OFDMA stats,
+     * TLV: htt_stats_tx_pdev_bn_dl_mu_ofdma_tlv and
+     * htt_stats_tx_pdev_bn_ul_mu_ofdma_tlv
+     */
+    HTT_UPLOAD_BN_MU_OFDMA_STATS,
+
+    /*
+     * Upload BN DL MU-OFDMA
+     * TLV: htt_stats_tx_pdev_bn_dl_mu_ofdma_tlv
+     */
+    HTT_UPLOAD_BN_DL_MU_OFDMA_STATS,
+
+    /*
+     * Upload BN UL MU-OFDMA
+     * TLV: htt_stats_tx_pdev_bn_ul_mu_ofdma_tlv
+     */
+    HTT_UPLOAD_BN_UL_MU_OFDMA_STATS,
 } htt_mu_stats_upload_t;
 
 /* htt_tx_rate_stats_upload_t
@@ -2507,8 +2526,9 @@ typedef enum {
     HTT_RX_TID_STATS_TLV        = 5,
     HTT_MSDU_FLOW_STATS_TLV     = 6,
     HTT_PEER_SCHED_STATS_TLV    = 7,
-    HTT_PEER_AX_OFDMA_STATS_TLV = 8,
-    HTT_PEER_BE_OFDMA_STATS_TLV = 9,
+    HTT_PEER_OFDMA_STATS_TLV    = 8,
+        HTT_PEER_AX_OFDMA_STATS_TLV = HTT_PEER_OFDMA_STATS_TLV, /* DEPRECATED */
+    HTT_PEER_BE_OFDMA_STATS_TLV = 9,                            /* DEPRECATED */
 
     HTT_PEER_STATS_MAX_TLV      = 31,
 } htt_peer_stats_tlv_enum;
@@ -2531,18 +2551,46 @@ typedef struct {
 /* preserve old name alias for new name consistent with the tag name */
 typedef htt_stats_peer_sched_stats_tlv htt_peer_sched_stats_tlv;
 
+/* Retaining the old structure defs for compatibility */
 typedef struct {
     htt_tlv_hdr_t tlv_hdr;
     A_UINT32 peer_id;
-    A_UINT32 ax_basic_trig_count;
-    A_UINT32 ax_basic_trig_err;
-    A_UINT32 ax_bsr_trig_count;
-    A_UINT32 ax_bsr_trig_err;
-    A_UINT32 ax_mu_bar_trig_count;
-    A_UINT32 ax_mu_bar_trig_err;
-    A_UINT32 ax_basic_trig_with_per;
-    A_UINT32 ax_bsr_trig_with_per;
-    A_UINT32 ax_mu_bar_trig_with_per;
+    union{
+        A_UINT32 ax_basic_trig_count; /* retaining the older alias */
+        A_UINT32 basic_trig_count;
+    };
+    union{
+        A_UINT32 ax_basic_trig_err; /* retaining the older alias */
+        A_UINT32 basic_trig_err;
+    };
+    union{
+        A_UINT32 ax_bsr_trig_count; /* retaining the older alias */
+        A_UINT32 bsr_trig_count;
+    };
+    union{
+        A_UINT32 ax_bsr_trig_err; /* retaining the older alias */
+        A_UINT32 bsr_trig_err;
+    };
+    union{
+        A_UINT32 ax_mu_bar_trig_count; /* retaining the older alias */
+        A_UINT32 mu_bar_trig_count;
+    };
+    union{
+        A_UINT32 ax_mu_bar_trig_err;  /* retaining the older alias */
+        A_UINT32 mu_bar_trig_err;
+    };
+    union{
+        A_UINT32 ax_basic_trig_with_per; /* retaining the older alias */
+        A_UINT32 basic_trig_with_per;
+    };
+    union{
+        A_UINT32 ax_bsr_trig_with_per;  /* retaining the older alias */
+        A_UINT32 bsr_trig_with_per;
+    };
+    union{
+        A_UINT32 ax_mu_bar_trig_with_per; /* retaining the older alias */
+        A_UINT32 mu_bar_trig_with_per;
+    };
     /* is_airtime_large_for_dl_ofdma, is_airtime_large_for_ul_ofdma
      * These fields contain 2 counters each.  The first element in each
      * array counts how many times the airtime is short enough to use
@@ -2554,13 +2602,22 @@ typedef struct {
     /* Last updated value of DL and UL queue depths for each peer per AC */
     A_UINT32 last_updated_dl_qdepth[HTT_NUM_AC_WMM];
     A_UINT32 last_updated_ul_qdepth[HTT_NUM_AC_WMM];
-    /* Per peer Manual 11ax UL OFDMA trigger and trigger error counts */
-    A_UINT32 ax_manual_ulofdma_trig_count;
-    A_UINT32 ax_manual_ulofdma_trig_err_count;
-} htt_stats_peer_ax_ofdma_stats_tlv;
-/* preserve old name alias for new name consistent with the tag name */
-typedef htt_stats_peer_ax_ofdma_stats_tlv htt_peer_ax_ofdma_stats_tlv;
 
+    /* Per peer Manual UL OFDMA trigger and trigger error counts */
+    union{
+        A_UINT32 ax_manual_ulofdma_trig_count;  /* retaining the older alias */
+        A_UINT32 manual_ulofdma_trig_count;
+    };
+    union{
+        A_UINT32 ax_manual_ulofdma_trig_err_count;  /* retaining the older alias */
+        A_UINT32 manual_ulofdma_trig_err_count;
+    };
+} htt_stats_peer_ofdma_stats_tlv;
+/* preserve old name alias for new name consistent with the tag name */
+typedef htt_stats_peer_ofdma_stats_tlv htt_peer_ax_ofdma_stats_tlv;
+typedef htt_stats_peer_ofdma_stats_tlv htt_stats_peer_ax_ofdma_stats_tlv;
+
+/* DEPRECATED */
 typedef struct {
     htt_tlv_hdr_t tlv_hdr;
     A_UINT32 peer_id;
@@ -2642,7 +2699,8 @@ typedef htt_stats_peer_be_ofdma_stats_tlv htt_peer_be_ofdma_stats_tlv;
  *   - HTT_STATS_PEER_MSDU_FLOWQ_TAG (multiple)
  *   - HTT_STATS_TX_TID_DETAILS_V1_TAG (multiple)
  *   - HTT_STATS_PEER_SCHED_STATS_TAG
- *   - HTT_STATS_PEER_AX_OFDMA_STATS_TAG
+ *   - HTT_STATS_PEER_OFDMA_STATS_TAG / HTT_STATS_PEER_AX_OFDMA_STATS_TAG
+ *   - HTT_STATS_PEER_BE_OFDMA_STATS_TAG
  */
 /* NOTE:
  * This structure is for documentation, and cannot be safely used directly.
@@ -2661,8 +2719,12 @@ typedef struct _htt_peer_stats {
     htt_stats_peer_msdu_flowq_tlv     msdu_flowq[1];
     htt_stats_tx_tid_details_v1_tlv   tx_tid_stats_v1[1];
     htt_stats_peer_sched_stats_tlv    peer_sched_stats;
-    htt_stats_peer_ax_ofdma_stats_tlv ax_ofdma_stats;
-    htt_stats_peer_be_ofdma_stats_tlv be_ofdma_stats;
+    union {
+        htt_stats_peer_ofdma_stats_tlv    peer_ofdma_stats;
+        /* ax_ofdma_stats: DEPRECATED, but retained as alias */
+        htt_stats_peer_ax_ofdma_stats_tlv ax_ofdma_stats;
+    };
+    htt_stats_peer_be_ofdma_stats_tlv be_ofdma_stats; /* DEPRECATED */
 } htt_peer_stats_t;
 #endif /* ATH_TARGET */
 
@@ -3135,6 +3197,7 @@ typedef enum {
 #define HTT_TX_PDEV_STATS_NUM_AX_MUMIMO_USER_STATS 8
 #define HTT_TX_PDEV_STATS_NUM_BE_MUMIMO_USER_STATS 8
 #define HTT_TX_PDEV_STATS_NUM_OFDMA_USER_STATS 74
+#define HTT_TX_PDEV_STATS_NUM_BN_OFDMA_USER_STATS 16
 #define HTT_TX_PDEV_STATS_NUM_UL_MUMIMO_USER_STATS 8
 #define HTT_STATS_MAX_MUMIMO_GRP_SZ 8
 /*
@@ -3348,6 +3411,22 @@ typedef struct {
     A_UINT32 ax_mu_bar_trigger_per_ac[HTT_NUM_AC_WMM];
     /** 11AX HE MU-BAR Trigger frames per AC completed with error(s) */
     A_UINT32 ax_mu_bar_trigger_errors_per_ac[HTT_NUM_AC_WMM];
+    /** 11AX HE MU Combined UL OFDMA Basic Trigger frame sent over the air */
+    A_UINT32 combined_ax_ulofdma_trigger_tried[HTT_NUM_AC_WMM];
+    /** 11AX HE MU Combined UL OFDMA Basic Trigger completed with error(s) */
+    A_UINT32 combined_ax_ulofdma_trigger_err[HTT_NUM_AC_WMM];
+    /** 11AX HE MU Standalone UL OFDMA Basic Trigger frame sent over the air */
+    A_UINT32 standalone_ax_ulofdma_trigger_tried[HTT_NUM_AC_WMM];
+    /** 11AX HE MU Standalone UL OFDMA Basic Trigger completed with error(s) */
+    A_UINT32 standalone_ax_ulofdma_trigger_err[HTT_NUM_AC_WMM];
+    /** 11AX HE MU Combined UL MU-MIMO Basic Trigger frame sent over the air */
+    A_UINT32 combined_ax_ulmumimo_trigger_tried[HTT_NUM_AC_WMM];
+    /** 11AX HE MU Combined UL MU-MIMO Basic Trigger completed with error(s) */
+    A_UINT32 combined_ax_ulmumimo_trigger_err[HTT_NUM_AC_WMM];
+    /** 11AX HE MU Standalone UL MU-MIMO Basic Trigger frame sent over the air*/
+    A_UINT32 standalone_ax_ulmumimo_trigger_tried[HTT_NUM_AC_WMM];
+    /** 11AX HE MU Standalone UL MU-MIMO Basic Trigger completed with error(s)*/
+    A_UINT32 standalone_ax_ulmumimo_trigger_err[HTT_NUM_AC_WMM];
 } htt_stats_tx_selfgen_ax_stats_tlv;
 /* preserve old name alias for new name consistent with the tag name */
 typedef htt_stats_tx_selfgen_ax_stats_tlv htt_tx_selfgen_ax_stats_tlv;
@@ -3413,9 +3492,54 @@ typedef struct {
     A_UINT32 be_mu_bar_trigger_per_ac[HTT_NUM_AC_WMM];
     /** 11BE EHT MU-BAR Trigger frames per AC completed with error(s) */
     A_UINT32 be_mu_bar_trigger_errors_per_ac[HTT_NUM_AC_WMM];
+    /** 11BE EHT MU Combined UL OFDMA Basic Trigger frame sent over the air */
+    A_UINT32 combined_be_ulofdma_trigger_tried[HTT_NUM_AC_WMM];
+    /** 11BE EHT MU Combined UL OFDMA Basic Trigger completed with error(s) */
+    A_UINT32 combined_be_ulofdma_trigger_err[HTT_NUM_AC_WMM];
+    /** 11BE EHT MU Standalone UL OFDMA Basic Trigger frame sent over the air */
+    A_UINT32 standalone_be_ulofdma_trigger_tried[HTT_NUM_AC_WMM];
+    /** 11BE EHT MU Standalone UL OFDMA Basic Trigger completed with error(s) */
+    A_UINT32 standalone_be_ulofdma_trigger_err[HTT_NUM_AC_WMM];
+    /** 11BE EHT MU Combined UL MU-MIMO Basic Trigger frame sent over the air */
+    A_UINT32 combined_be_ulmumimo_trigger_tried[HTT_NUM_AC_WMM];
+    /** 11BE EHT MU Combined UL MU-MIMO Basic Trigger completed with error(s) */
+    A_UINT32 combined_be_ulmumimo_trigger_err[HTT_NUM_AC_WMM];
+    /** 11BE EHT MU Standalone UL MU-MIMO Basic Trigger frame sent over the air */
+    A_UINT32 standalone_be_ulmumimo_trigger_tried[HTT_NUM_AC_WMM];
+    /** 11BE EHT MU Standalone UL MU-MIMO Basic Trigger completed with error(s) */
+    A_UINT32 standalone_be_ulmumimo_trigger_err[HTT_NUM_AC_WMM];
 } htt_stats_tx_selfgen_be_stats_tlv;
 /* preserve old name alias for new name consistent with the tag name */
 typedef htt_stats_tx_selfgen_be_stats_tlv htt_tx_selfgen_be_stats_tlv;
+
+typedef struct {
+    htt_tlv_hdr_t tlv_hdr;
+    /** 11bn UHR MU Basic Trigger frame sent over the air */
+    A_UINT32 bn_basic_trigger;
+    /** 11bn UHR MU BSRP Trigger frame sent over the air */
+    A_UINT32 bn_bsr_trigger;
+    /** 11bn UHR MU BAR Trigger frame sent over the air */
+    A_UINT32 bn_mu_bar_trigger;
+    /** 11bn UHR MU RTS Trigger frame sent over the air */
+    A_UINT32 bn_mu_rts_trigger;
+
+    /** 11BN UHR MU Combined Freq. BSRP Trigger frame sent over the air */
+    A_UINT32 combined_bn_bsr_trigger_tried[HTT_NUM_AC_WMM];
+    /** 11BN UHR MU Combined Freq. BSRP Trigger completed with error(s) */
+    A_UINT32 combined_bn_bsr_trigger_err[HTT_NUM_AC_WMM];
+    /** 11BN UHR MU Standalone Freq. BSRP Trigger frame sent over the air */
+    A_UINT32 standalone_bn_bsr_trigger_tried[HTT_NUM_AC_WMM];
+    /** 11BN UHR MU Standalone Freq. BSRP Trigger completed with error(s) */
+    A_UINT32 standalone_bn_bsr_trigger_err[HTT_NUM_AC_WMM];
+    /** 11BN UHR Manual Single-User UL OFDMA Trigger frame sent over the air */
+    A_UINT32 manual_bn_su_ulofdma_basic_trigger[HTT_NUM_AC_WMM];
+    /** 11BN UHR Manual Single-User UL OFDMA Trigger completed with error(s) */
+    A_UINT32 manual_bn_su_ulofdma_basic_trigger_err[HTT_NUM_AC_WMM];
+    /** 11BN UHR Manual Multi-User UL OFDMA Trigger frame sent over the air */
+    A_UINT32 manual_bn_mu_ulofdma_basic_trigger[HTT_NUM_AC_WMM];
+    /** 11BN UHR Manual Multi-User UL OFDMA Trigger completed with error(s) */
+    A_UINT32 manual_bn_mu_ulofdma_basic_trigger_err[HTT_NUM_AC_WMM];
+} htt_stats_tx_selfgen_bn_tlv;
 
 typedef struct { /* DEPRECATED */
     htt_tlv_hdr_t tlv_hdr;
@@ -3998,6 +4122,29 @@ typedef struct {
 /* preserve old name alias for new name consistent with the tag name */
 typedef htt_stats_tx_selfgen_be_err_stats_tlv htt_tx_selfgen_be_err_stats_tlv;
 
+typedef struct {
+    htt_tlv_hdr_t tlv_hdr;
+    /** 11BN UHR MU Basic Trigger frame completed with error(s) */
+    A_UINT32 bn_basic_trigger_err;
+    /** 11BN UHR MU BSRP Trigger frame completed with error(s) */
+    A_UINT32 bn_bsr_trigger_err;
+    /** 11BN UHR MU BAR Trigger frame completed with error(s) */
+    A_UINT32 bn_mu_bar_trigger_err;
+    /** 11BN UHR MU RTS Trigger frame completed with error(s) */
+    A_UINT32 bn_mu_rts_trigger_err;
+
+    /** 11BN UHR MU OFDMA Basic Trigger frame completed with partial user response */
+    A_UINT32 bn_basic_trigger_partial_resp;
+    /** 11BN UHR MU BSRP Trigger frame completed with partial user response */
+    A_UINT32 bn_bsr_trigger_partial_resp;
+    /** 11BN UHR MU BAR Trigger frame completed with partial user response */
+    A_UINT32 bn_mu_bar_trigger_partial_resp;
+    /** 11BN UHR MU RTS Trigger frame blocked due to partner link TX/RX(eMLSR) */
+    A_UINT32 bn_mu_rts_trigger_blocked;
+    /** 11BN UHR MU BSR Trigger frame blocked due to partner link TX/RX(eMLSR) */
+    A_UINT32 bn_bsr_trigger_blocked;
+} htt_stats_tx_selfgen_bn_err_tlv;
+
 /*
  * Scheduler completion status reason code.
  * (0) HTT_TXERR_NONE - No error (Success).
@@ -4129,6 +4276,19 @@ typedef struct {
 typedef htt_stats_tx_selfgen_be_sched_status_stats_tlv
     htt_tx_selfgen_be_sched_status_stats_tlv;
 
+typedef struct {
+    htt_tlv_hdr_t tlv_hdr;
+    /** 11BN UHR MU BAR scheduler completion status reason code */
+    A_UINT32 bn_mu_bar_sch_status[HTT_TX_PDEV_STATS_NUM_TX_ERR_STATUS];
+    /** 11BN UHR MU BAR scheduler error code */
+    A_UINT32 bn_mu_bar_sch_flag_err[HTT_TX_SELFGEN_NUM_SCH_TSFLAG_ERROR_STATS];
+
+    /** 11BN UHR UL OFDMA Basic Trigger scheduler completion status reason code */
+    A_UINT32 bn_basic_trig_sch_status[HTT_TX_PDEV_STATS_NUM_TX_ERR_STATUS];
+    /** 11BN UHR UL OFDMA Basic Trigger scheduler error code */
+    A_UINT32 bn_basic_trig_sch_flag_err[HTT_TX_SELFGEN_NUM_SCH_TSFLAG_ERROR_STATS];
+} htt_stats_tx_selfgen_bn_sched_status_tlv;
+
 /* STATS_TYPE : HTT_DBG_EXT_STATS_TX_SELFGEN_INFO
  * TLV_TAGS:
  *      - HTT_STATS_TX_SELFGEN_CMN_STATS_TAG
@@ -4141,6 +4301,9 @@ typedef htt_stats_tx_selfgen_be_sched_status_stats_tlv
  *      - HTT_STATS_TX_SELFGEN_BE_STATS_TAG
  *      - HTT_STATS_TX_SELFGEN_BE_ERR_STATS_TAG
  *      - HTT_STATS_TX_SELFGEN_BE_SCHED_STATUS_STATS_TAG
+ *      - HTT_STATS_TX_SELFGEN_BN_TAG
+ *      - HTT_STATS_TX_SELFGEN_BN_ERR_TAG
+ *      - HTT_STATS_TX_SELFGEN_BN_SCHED_STATUS_TAG
  */
 /* NOTE:
  * This structure is for documentation, and cannot be safely used directly.
@@ -4158,6 +4321,9 @@ typedef struct {
     htt_stats_tx_selfgen_be_stats_tlv be_tlv;
     htt_stats_tx_selfgen_be_err_stats_tlv be_err_tlv;
     htt_stats_tx_selfgen_be_sched_status_stats_tlv be_sched_status_tlv;
+    htt_stats_tx_selfgen_bn_tlv bn_tlv;
+    htt_stats_tx_selfgen_bn_err_tlv bn_err_tlv;
+    htt_stats_tx_selfgen_bn_sched_status_tlv bn_sched_status_tlv;
 } htt_tx_pdev_selfgen_stats_t;
 #endif /* ATH_TARGET */
 
@@ -4297,6 +4463,12 @@ typedef htt_stats_tx_pdev_be_dl_mu_ofdma_stats_tlv
 
 typedef struct {
     htt_tlv_hdr_t tlv_hdr;
+    /** Represents the count for 11BN DL MU OFDMA sequences */
+    A_UINT32 bn_mu_ofdma_sch_nusers[HTT_TX_PDEV_STATS_NUM_BN_OFDMA_USER_STATS];
+} htt_stats_tx_pdev_bn_dl_mu_ofdma_tlv;
+
+typedef struct {
+    htt_tlv_hdr_t tlv_hdr;
     /**
      * Represents the count for 11AX UL MU OFDMA sequences with Basic Triggers
      */
@@ -4340,6 +4512,25 @@ typedef struct {
 /* preserve old name alias for new name consistent with the tag name */
 typedef htt_stats_tx_pdev_be_ul_mu_ofdma_stats_tlv
     htt_tx_pdev_be_ul_mu_ofdma_sch_stats_tlv;
+
+typedef struct {
+    htt_tlv_hdr_t tlv_hdr;
+    /**
+     * Represents the count for 11BN UL MU OFDMA sequences with Basic Triggers
+     */
+    A_UINT32 bn_ul_mu_ofdma_basic_sch_nusers[HTT_TX_PDEV_STATS_NUM_BN_OFDMA_USER_STATS];
+    /**
+     * Represents the count for 11BN UL MU OFDMA sequences with BSRP Triggers
+     */
+    A_UINT32 bn_ul_mu_ofdma_bsr_sch_nusers[HTT_TX_PDEV_STATS_NUM_BN_OFDMA_USER_STATS];
+    /**
+     * Represents the count for 11BN UL MU OFDMA sequences with BAR Triggers
+     */
+    A_UINT32 bn_ul_mu_ofdma_bar_sch_nusers[HTT_TX_PDEV_STATS_NUM_BN_OFDMA_USER_STATS];
+    /**
+     * TODO_BORON_OFDMA : Add array for BN_BRP number of users
+     */
+} htt_stats_tx_pdev_bn_ul_mu_ofdma_tlv;
 
 typedef struct {
     htt_tlv_hdr_t tlv_hdr;
@@ -4427,6 +4618,7 @@ typedef htt_stats_tx_pdev_mumimo_mpdu_stats_tlv
 #define HTT_STATS_TX_SCHED_MODE_MU_OFDMA_AX 3 /* SCHED_TX_MODE_MU_OFDMA_AX */
 #define HTT_STATS_TX_SCHED_MODE_MU_OFDMA_BE 4 /* SCHED_TX_MODE_MU_OFDMA_BE */
 #define HTT_STATS_TX_SCHED_MODE_MU_MIMO_BE  5 /* SCHED_TX_MODE_MU_MIMO_BE */
+#define HTT_STATS_TX_SCHED_MODE_MU_OFDMA_BN 6 /* SCHED_TX_MODE_MU_OFDMA_BN */
 
 typedef struct {
     htt_tlv_hdr_t tlv_hdr;
@@ -6014,6 +6206,19 @@ typedef struct {
         ((_var) |= ((_val) << HTT_TX_PDEV_RATE_STATS_MAC_ID_S)); \
     } while (0)
 
+#define HTT_TX_PDEV_RATE_STATS_WIFI_VERSION_M 0x00000f00
+#define HTT_TX_PDEV_RATE_STATS_WIFI_VERSION_S 8
+
+#define HTT_TX_PDEV_RATE_STATS_WIFI_VERSION_GET(_var) \
+    (((_var) & HTT_TX_PDEV_RATE_STATS_WIFI_VERSION_M) >> \
+     HTT_TX_PDEV_RATE_STATS_WIFI_VERSION_S)
+
+#define HTT_TX_PDEV_RATE_STATS_WIFI_VERSION_SET(_var, _val) \
+    do { \
+        HTT_CHECK_SET_VAL(HTT_TX_PDEV_RATE_STATS_WIFI_VERSION, _val); \
+        ((_var) |= ((_val) << HTT_TX_PDEV_RATE_STATS_WIFI_VERSION_S)); \
+    } while (0)
+
 #define HTT_TX_PDEV_STATS_NUM_MCS_DROP_COUNTERS \
     (HTT_TX_PDEV_STATS_NUM_MCS_COUNTERS + \
      HTT_TX_PDEV_STATS_NUM_EXTRA_MCS_COUNTERS + \
@@ -6081,17 +6286,33 @@ typedef enum {
 #define HTT_TX_PDEV_STATS_NUM_BN_RU_SIZE_COUNTERS \
     HTT_TX_PDEV_STATS_NUM_BE_RU_SIZE_COUNTERS
 
+typedef enum {
+    HTT_WIFI_VER_UNKNOWN = 0,
+    HTT_WIFI_VER_11N  = 4,
+    HTT_WIFI_VER_11AC = 5,
+    HTT_WIFI_VER_11AX = 6,
+    HTT_WIFI_VER_11BE = 7,
+    HTT_WIFI_VER_11BN = 8,
+} HTT_RX_TX_PDEV_STATS_WIFI_VERSION;
+
 typedef struct {
     htt_tlv_hdr_t tlv_hdr;
 
     /**
      * BIT [ 7 :  0]   :- mac_id
-     * BIT [31 :  8]   :- reserved
+     * BIT [11 :  8]   :- wifi_version
+     * BIT [31 : 12]   :- reserved
      */
     union {
         struct {
-            A_UINT32 mac_id:    8,
-                     reserved: 24;
+            A_UINT32 mac_id:        8,
+                     /* wifi_version:
+                      * Holds a HTT_RX_TX_PDEV_STATS_WIFI_VERSION value.
+                      * Refer to HTT_TX_PDEV_RATE_STATS_WIFI_VERSION_GET
+                      * / _SET macros for accessing this bitfield.
+                      */
+                     wifi_version:  4,
+                     reserved:     20;
         };
         A_UINT32 mac_id__word;
     };
@@ -6225,6 +6446,9 @@ typedef struct {
     A_UINT32 extra_eht_ltf_ofdma;
     /** 11AX HE UL_BA RU Size stats */
     A_UINT32 ofdma_ba_ru_size[HTT_TX_PDEV_STATS_NUM_AX_RU_SIZE_COUNTERS];
+    /** Number of tx 2xldpc packets */
+    A_UINT32 tx_2xldpc;
+    A_UINT32 rc_state_probe_mismatched;
 } htt_stats_tx_pdev_rate_stats_tlv;
 /* preserve old name alias for new name consistent with the tag name */
 typedef htt_stats_tx_pdev_rate_stats_tlv htt_tx_pdev_rate_stats_tlv;
@@ -6710,6 +6934,19 @@ typedef struct {
 } htt_rx_pdev_rate_stats_t;
 #endif /* ATH_TARGET */
 
+#define HTT_RX_EXT_PDEV_RATE_STATS_WIFI_VERSION_M 0x0000000f
+#define HTT_RX_EXT_PDEV_RATE_STATS_WIFI_VERSION_S 0
+
+#define HTT_RX_EXT_PDEV_RATE_STATS_WIFI_VERSION_GET(_var) \
+    (((_var) & HTT_RX_EXT_PDEV_RATE_STATS_WIFI_VERSION_M) >> \
+     HTT_RX_EXT_PDEV_RATE_STATS_WIFI_VERSION_S)
+
+#define HTT_RX_EXT_PDEV_RATE_STATS_WIFI_VERSION_SET(_var, _val) \
+    do { \
+        HTT_CHECK_SET_VAL(HTT_RX_EXT_PDEV_RATE_STATS_WIFI_VERSION, _val); \
+        ((_var) |= ((_val) << HTT_RX_EXT_PDEV_RATE_STATS_WIFI_VERSION_S)); \
+    } while (0)
+
 typedef struct {
     htt_tlv_hdr_t tlv_hdr;
     /** units = dB above noise floor */
@@ -6739,6 +6976,25 @@ typedef struct {
     A_UINT32 reduced_rx_bw[HTT_RX_PDEV_STATS_NUM_REDUCED_CHAN_TYPES][HTT_RX_PDEV_STATS_NUM_BW_COUNTERS];
     A_UINT8  rssi_chain_ext_2[HTT_RX_PDEV_STATS_NUM_SPATIAL_STREAMS][HTT_RX_PDEV_STATS_NUM_BW_EXT_2_COUNTERS]; /* units = dB above noise floor */
     A_INT8   rx_per_chain_rssi_ext_2_in_dbm[HTT_RX_PDEV_STATS_NUM_SPATIAL_STREAMS][HTT_RX_PDEV_STATS_NUM_BW_EXT_2_COUNTERS];
+    /**
+     * BIT [ 3 :  0]   :- wifi_version
+     * BIT [31 :  4]   :- reserved
+     */
+    union {
+        struct {
+            A_UINT32
+                     /* wifi_version:
+                      * Holds a HTT_RX_TX_PDEV_STATS_WIFI_VERSION value.
+                      * Refer to HTT_RX_EXT_PDEV_RATE_STATS_WIFI_VERSION_GET
+                      * / _SET macros for accessing this bitfield.
+                      */
+                     wifi_version:  4,
+                     reserved:     28;
+        };
+        A_UINT32 wifi_version__word;
+    };
+    /** Number of rx 2xldpc packets */
+    A_UINT32 rx_2xldpc;
 } htt_stats_rx_pdev_rate_ext_stats_tlv;
 /* preserve old name alias for new name consistent with the tag name */
 typedef htt_stats_rx_pdev_rate_ext_stats_tlv htt_rx_pdev_rate_ext_stats_tlv;
@@ -8679,6 +8935,20 @@ typedef enum {
     HTT_STATS_RU_TYPE_SINGLE_AND_MULTI_RU = 2,
 } htt_stats_ru_type;
 
+typedef enum {
+    HTT_TX_PER_RATE_STATS_LOW_QUEUE_DEPTH = 0,
+    HTT_TX_PER_RATE_STATS_HIGH_QUEUE_DEPTH = 1,
+
+    HTT_TX_PER_RATE_STATS_NUM_QUEUE_DEPTH_COUNTERS = 2
+} HTT_TX_PER_RATE_STATS_NUM_QUEUE_DEPTH_TYPE;
+
+typedef enum {
+    HTT_TX_PER_RATE_STATS_MLO_RA_DD_NO_MCS_DROP = 0,
+    HTT_TX_PER_RATE_STATS_MLO_RA_DD_ONE_OR_MORE_MCS_DROP = 1,
+
+    HTT_TX_PER_RATE_STATS_NUM_MLO_RA_DD_MCS_DROP_COUNTERS = 2
+} HTT_TX_PER_RATE_STATS_NUM_MLO_RA_DD_MCS_DROP_TYPE;
+
 typedef struct {
     htt_tlv_hdr_t tlv_hdr;
 
@@ -8706,6 +8976,19 @@ typedef struct {
     htt_tx_rate_stats_t per_ru[HTT_TX_PDEV_STATS_NUM_BE_RU_SIZE_COUNTERS];
 
     htt_tx_rate_stats_t per_tx_su_punctured_mode[HTT_TX_PDEV_STATS_NUM_PUNCTURED_MODE_COUNTERS];
+
+    /* mlo_ra_queue_depth_status:
+     * MLO SU Tx low/high queue depth PPDU counter,
+     *     mlo_ra_queue_depth_status[0]: lowq depth
+     *     mlo_ra_queue_depth_status[1]: high queue depth
+     */
+    A_UINT32 mlo_ra_queue_depth_status[HTT_TX_PER_RATE_STATS_NUM_QUEUE_DEPTH_COUNTERS];
+    /* mlo_rate_drop_down:
+     * MLO RA MCS drop counter,
+     *     mlo_rate_drop_down[0]: No MCS drop
+     *     mlo_rate_drop_down[1]: MCS drop counter
+     */
+    A_UINT32 mlo_rate_drop_down[HTT_TX_PER_RATE_STATS_NUM_MLO_RA_DD_MCS_DROP_COUNTERS];
 } htt_stats_per_rate_stats_tlv;
 /* preserve old name alias for new name consistent with the tag name */
 typedef htt_stats_per_rate_stats_tlv htt_tx_rate_stats_per_tlv;
@@ -9746,6 +10029,29 @@ typedef struct {
     A_UINT32 num_terminate_seq_inefficient;
     /* Histogram of sequence inefficiency */
     A_UINT32 hist_seq_efficiency[HTT_STATS_SEQ_EFFICIENCY_HISTOGRAM];
+    /* CTS2SELF sequences posted */
+    A_UINT32 num_cts2self_ulmumimo_seq_posted;
+    /* Number of times ULMUMIMO classification is set to high */
+    A_UINT32 num_ulmumimo_high_traffic;
+    /* Number of times ULMUMIMO classification is set to medium */
+    A_UINT32 num_ulmumimo_medium_traffic;
+    /* Number of times ULMUMIMO classification is set to low */
+    A_UINT32 num_ulmumimo_low_traffic;
+    /*
+     * Number of times ULMUMIMO sequence is terminated
+     * for high traffic classification
+     */
+    A_UINT32 num_terminate_seq_high_traffic;
+    /*
+     * Number of times ULMUMIMO sequence is terminated
+     * for medium traffic classification
+     */
+    A_UINT32 num_terminate_seq_medium_traffic;
+    /*
+     * Number of times ULMUMIMO sequence is terminated
+     * for low traffic classification
+     */
+    A_UINT32 num_terminate_seq_low_traffic;
 } htt_stats_pdev_ulmumimo_seq_term_stats_tlv;
 
 #define HTT_STATS_MAX_ULMUMIMO_TRIGGERS 6
