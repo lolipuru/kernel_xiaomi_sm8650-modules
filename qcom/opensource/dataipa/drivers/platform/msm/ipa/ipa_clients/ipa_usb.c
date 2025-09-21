@@ -1199,7 +1199,7 @@ static int ipa3_usb_request_xdci_channel(
 		break;
 	case IPA_USB_NCM:
 		chan_params.priv = ncm_ptr->private;
-		if (params->dir == GSI_CHAN_DIR_FROM_GSI)
+		if (params->dir == CHAN_DIR_FROM_GSI)
 			chan_params.notify = ncm_ptr->ipa_tx_notify;
 		else
 			chan_params.notify = ncm_ptr->ipa_rx_notify;
