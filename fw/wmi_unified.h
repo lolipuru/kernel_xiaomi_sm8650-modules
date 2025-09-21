@@ -15747,6 +15747,10 @@ typedef struct {
 #define WMI_VDEV_STATS_FLAGS_IS_LINK_ACTIVE_MASK \
     (1 << WMI_VDEV_STATS_FLAGS_IS_LINK_ACTIVE_BIT)
 
+#define WMI_VDEV_STATS_FLAGS_CHANNEL_STATS_PRESENT_BIT 2
+#define WMI_VDEV_STATS_FLAGS_CHANNEL_STATS_PRESENT_MASK \
+    (1 << WMI_VDEV_STATS_FLAGS_CHANNEL_STATS_PRESENT_BIT)
+
 /**
  *  vdev extension statistics
  */
@@ -15769,10 +15773,34 @@ typedef struct {
      *     1: the "is link active" flag is valid
      * bit 1: WMI_VDEV_STATS_FLAGS_IS_LINK_ACTIVE,
      *     1:link_active; 0:link_inactive
+     * bit 2: WMI_VDEV_STATS_FLAGS_CHANNEL_STATS_PRESENT,
+     *     0: new stats fields are not present.
+     *     1: new rx/tx/on/cca time stats fields present;
      * Refer to WMI_VDEV_STATS_FLAGS_ defs.
      */
     A_UINT32 flags;
     A_INT32 vdev_tx_power; /* dBm units */
+    /** rx_time:
+     * How many msecs vdev is in active receive on channel
+     * (32 bits number accruing over time)
+     */
+    A_UINT32 rx_time;
+    /** tx_time:
+     * How many msecs vdev is transmitting on channel
+     * (32 bits number accruing over time)
+     */
+    A_UINT32 tx_time;
+    /** on_time:
+     * How many msecs vdev is awake on channel
+     * (32 bits number accruing over time)
+     */
+    A_UINT32 on_time;
+    /** cca_time:
+     * How many msecs vdev is CCA busy on channel
+     * (32 bits number accruing over time)
+     * Includes rx_time but not tx_time.
+     */
+    A_UINT32 cca_time;
 } wmi_vdev_extd_stats;
 
 /**
