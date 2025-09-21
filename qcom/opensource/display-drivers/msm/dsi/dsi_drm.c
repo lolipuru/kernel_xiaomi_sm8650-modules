@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (c) 2021-2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  * Copyright (c) 2016-2021, The Linux Foundation. All rights reserved.
  */
 
@@ -437,14 +437,6 @@ static bool _dsi_bridge_mode_validate_and_fixup(struct drm_bridge *bridge,
 		return rc;
 	}
 
-	/*
-	 * DMS Flag if set during active changed condition cannot be
-	 * treated as seamless. Hence, removing DMS flag in such cases.
-	 */
-	if ((adj_mode->dsi_mode_flags & DSI_MODE_FLAG_DMS) &&
-			crtc_state->active_changed)
-		adj_mode->dsi_mode_flags &= ~DSI_MODE_FLAG_DMS;
-
 	/* No DMS/VRR when drm pipeline is changing */
 	if (!dsi_display_mode_match(&cur_dsi_mode, adj_mode,
 		DSI_MODE_MATCH_FULL_TIMINGS) &&
@@ -462,6 +454,17 @@ static bool _dsi_bridge_mode_validate_and_fixup(struct drm_bridge *bridge,
 			adj_mode->timing.refresh_rate,
 			adj_mode->pixel_clk_khz,
 			adj_mode->panel_mode_caps);
+	}
+
+	/*
+	 * DMS Flag if set during active changed condition cannot be
+	 * treated as seamless. Hence, removing DMS flag in such cases.
+	 */
+	if ((adj_mode->dsi_mode_flags & DSI_MODE_FLAG_DMS) &&
+			crtc_state->active_changed) {
+		DSI_INFO("removing DMS flag splash:%d flags:0x%x\n",
+				display->is_cont_splash_enabled, adj_mode->dsi_mode_flags);
+		adj_mode->dsi_mode_flags &= ~DSI_MODE_FLAG_DMS;
 	}
 
 	if (!dsi_display_mode_match(&cur_dsi_mode, adj_mode,
