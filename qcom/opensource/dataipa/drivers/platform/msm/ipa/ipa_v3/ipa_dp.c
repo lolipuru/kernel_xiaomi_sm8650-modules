@@ -1,9 +1,7 @@
-
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (c) 2012-2021, The Linux Foundation. All rights reserved.
- *
- * Copyright (c) 2022-2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 #include <linux/ip.h>
 #include <linux/ipv6.h>
@@ -2469,15 +2467,16 @@ int ipa_tx_dp(enum ipa_client_type dst, struct sk_buff *skb,
 		    ((network_header->version == 4 &&
 		     network_header->protocol == IPPROTO_ICMP) ||
 		    (((struct ipv6hdr *)network_header)->version == 6 &&
-		     ((struct ipv6hdr *)network_header)->nexthdr == NEXTHDR_ICMP))) {
+		     ((struct ipv6hdr *)network_header)->nexthdr == NEXTHDR_ICMP)) &&
+			 (meta && (!meta->ncm_enable))) {
 			ipa_imm_cmd_modify_ip_packet_init_ex_dest_pipe(
 				ipa3_ctx->pkt_init_ex_imm[ipa3_ctx->ipa_num_pipes].base,
 				dst_ep_idx);
 			desc[data_idx].opcode = ipa3_ctx->pkt_init_ex_imm_opcode;
 			desc[data_idx].dma_address =
 				ipa3_ctx->pkt_init_ex_imm[ipa3_ctx->ipa_num_pipes].phys_base;
-		} else if (ipa3_ctx->ep[dst_ep_idx].cfg.ulso.is_ulso_pipe &&
-			skb_is_gso(skb)) {
+		} else if ((ipa3_ctx->ep[dst_ep_idx].cfg.ulso.is_ulso_pipe &&
+			skb_is_gso(skb)) || (meta && (meta->ncm_enable))) {
 			desc[data_idx].opcode = ipa3_ctx->pkt_init_ex_imm_opcode;
 			desc[data_idx].dma_address =
 				ipa3_ctx->pkt_init_ex_imm[dst_ep_idx].phys_base;
@@ -2711,6 +2710,11 @@ static struct page *ipa3_alloc_page(
 	if (unlikely(!page)) {
 		if (try_lower && p_order > 0) {
 			p_order = p_order - 1;
+			if (ipa3_ctx->gfp_no_retry) {
+				flag = GFP_KERNEL | __GFP_RETRY_MAYFAIL | __GFP_NOWARN
+					| __GFP_NOMEMALLOC;
+			}
+
 			page = __dev_alloc_pages(flag, p_order);
 			if (likely(page))
 				ipa3_ctx->stats.lower_order++;
@@ -2764,7 +2768,10 @@ static struct ipa3_rx_pkt_wrapper *ipa3_alloc_rx_pkt_page(
 	rx_pkt->page_data.page_order = sys->page_order;
 	/* For temporary allocations, avoid triggering OOM Killer. */
 	if (is_tmp_alloc) {
-		flag |= __GFP_RETRY_MAYFAIL | __GFP_NOWARN;
+		if (ipa3_ctx->gfp_no_retry)
+			flag |= __GFP_NORETRY | __GFP_NOWARN;
+		else
+			flag |= __GFP_RETRY_MAYFAIL | __GFP_NOWARN;
 		rx_pkt->page_data.page = ipa3_rmnet_alloc_page(
 			flag, &rx_pkt->page_data.page_order, true);
 	} else {

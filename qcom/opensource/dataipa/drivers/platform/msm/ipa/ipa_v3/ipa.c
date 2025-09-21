@@ -2,7 +2,7 @@
 /*
  * Copyright (c) 2012-2021, The Linux Foundation. All rights reserved.
  *
- * Copyright (c) 2022-2025 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
 #include <linux/clk.h>
@@ -544,7 +544,7 @@ static int ipa_pm_notify(struct notifier_block *b, unsigned long event, void *p)
 		break;
 	case PM_POST_SUSPEND:
 #if IS_ENABLED(CONFIG_DEEPSLEEP)
-		if (pm_suspend_via_firmware() && ipa3_ctx->deepsleep) {
+		if (ipa3_ctx->deepsleep) {
 			IPADBG("Enter deepsleep resume\n");
 			ipa3_deepsleep_resume();
 			IPADBG("Exit deepsleep resume\n");
@@ -9115,20 +9115,22 @@ int ipa_set_pkt_init_ex_hdr_ofst(struct ipa_pkt_init_ex_hdr_ofst_set
 	}
 	if (proc_ctx) {
 		res = ipa3_get_hdr_proc_ctx_offset(lookup->name, &offset);
+		cmd.rt_hdr_offset = offset;
+		cmd.cs_disable = false;
 	} else {
 		res = ipa3_get_hdr_offset(lookup->name ,&offset);
+		cmd.rt_hdr_offset = (IPA_MEM_PART(modem_hdr_size) + offset) >> 2;
+		cmd.cs_disable = true;
 	}
 	if (res != 0)
 		return res;
 
-	cmd.rt_hdr_offset = offset;
 	IPADBG("cmd.rt_hdr_offset=%d\n", cmd.rt_hdr_offset);
 	cmd.frag_disable = true;
 	cmd.nat_disable = true;
 	cmd.filter_disable = true;
 	cmd.route_disable = true;
 	cmd.hdr_removal_insertion_disable = false;
-	cmd.cs_disable = false;
 	cmd.flt_retain_hdr = true;
 	cmd.rt_retain_hdr = true;
 	cmd.rt_pipe_dest_idx = dst_ep_idx;
@@ -9330,6 +9332,7 @@ static int ipa3_pre_init(const struct ipa3_plat_drv_res *resource_p,
 				0xFF;
 	}
 
+	ipa3_ctx->gfp_no_retry = resource_p->gfp_no_retry;
 	ipa3_ctx->ipa_wrapper_base = resource_p->ipa_mem_base;
 	ipa3_ctx->ipa_wrapper_size = resource_p->ipa_mem_size;
 	ipa3_ctx->ipa_cfg_offset = resource_p->ipa_cfg_offset;
@@ -10407,6 +10410,7 @@ static int get_ipa_dts_configuration(struct platform_device *pdev,
 	ipa_drv_res->rmnet_ll_enable = 0;
 	ipa_drv_res->ulso_wa = false;
 	ipa_drv_res->coal_ipv4_id_ignore = true;
+	ipa_drv_res->gfp_no_retry = false;
 
 	/* Get IPA HW Version */
 	result = of_property_read_u32(pdev->dev.of_node, "qcom,ipa-hw-ver",
@@ -10517,6 +10521,11 @@ static int get_ipa_dts_configuration(struct platform_device *pdev,
 		ipa_drv_res->ipa_endp_delay_wa_v2 = false;
 	}
 
+	ipa_drv_res->gfp_no_retry = of_property_read_bool(pdev->dev.of_node,
+			"qcom,gfp-no-retry");
+	IPADBG(": gfp-no-retry = %s\n",
+			ipa_drv_res->gfp_no_retry
+			? "True" : "False");
 
 	ipa_drv_res->ulso_wa = of_property_read_bool(pdev->dev.of_node,
 			"qcom,ipa-ulso-wa");
@@ -12188,7 +12197,7 @@ int ipa3_ap_suspend(struct device *dev)
 
 
 #if IS_ENABLED(CONFIG_DEEPSLEEP)
-	if (pm_suspend_via_firmware()) {
+	if (pm_suspend_target_state == PM_SUSPEND_MEM) {
 		IPADBG("Enter deepsleep suspend\n");
 		ipa3_deepsleep_suspend();
 		IPADBG("Exit deepsleep suspend\n");
