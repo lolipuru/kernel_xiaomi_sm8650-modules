@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
  * Copyright (c) 2017-2021, The Linux Foundation. All rights reserved.
- * Copyright (c) 2022-2023 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) 2022-2025 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
 #ifndef _CAM_SENSOR_UTIL_H_
@@ -56,13 +56,13 @@ int32_t cam_sensor_handle_random_write(
 	struct cam_cmd_i2c_random_wr *cam_cmd_i2c_random_wr,
 	struct i2c_settings_array *i2c_reg_settings,
 	uint32_t *cmd_length_in_bytes, int32_t *offset,
-	struct list_head **list);
+	struct list_head **list, uint32_t payload_count);
 
 int32_t cam_sensor_handle_continuous_write(
 	struct cam_cmd_i2c_continuous_wr *cam_cmd_i2c_continuous_wr,
 	struct i2c_settings_array *i2c_reg_settings,
 	uint32_t *cmd_length_in_bytes, int32_t *offset,
-	struct list_head **list);
+	struct list_head **list, uint32_t payload_count);
 
 int32_t cam_sensor_handle_delay(
 	uint32_t **cmd_buf,
@@ -83,7 +83,7 @@ int32_t cam_sensor_handle_random_read(
 	uint16_t *cmd_length_in_bytes,
 	int32_t *offset,
 	struct list_head **list,
-	struct cam_buf_io_cfg *io_cfg);
+	struct cam_buf_io_cfg *io_cfg, uint32_t payload_count);
 
 int32_t cam_sensor_handle_continuous_read(
 	struct cam_cmd_i2c_continuous_rd *cmd_i2c_continuous_rd,

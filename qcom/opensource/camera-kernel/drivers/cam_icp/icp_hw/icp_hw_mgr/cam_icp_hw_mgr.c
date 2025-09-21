@@ -5700,6 +5700,17 @@ static int cam_icp_process_stream_settings(
 			return -EINVAL;
 		}
 
+		if (cmd_mem_regions->map_info_array[i].offset >= len) {
+			CAM_ERR(CAM_ICP,
+				"%s: Mem region offset exceeds length of the buffer, mem handle: 0x%x, iova: %pK, len: %u, offset: 0x%x",
+				ctx_data->ctx_id_string,
+				cmd_mem_regions->map_info_array[i].mem_handle,
+				(uint32_t)iova, (uint32_t)len,
+				cmd_mem_regions->map_info_array[i].offset);
+			kfree(map_cmd);
+			return -EINVAL;
+		}
+
 		/* FW/CDM buffers are expected to be mapped in 32-bit address range */
 		map_cmd->mem_map_region_sets[i].start_addr = (uint32_t)iova +
 			(cmd_mem_regions->map_info_array[i].offset);
