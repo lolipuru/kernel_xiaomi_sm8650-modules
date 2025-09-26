@@ -51698,12 +51698,21 @@ typedef struct {
     A_UINT32 pcie_lane;
 } wmi_energy_mgmt_pcie_config_cmd_fixed_param;
 
+typedef enum {
+    WMI_PCIE_LPM_CONFIG_TYPE_UNKNOWN,
+    WMI_PCIE_LPM_CONFIG_TYPE_L0S,
+    WMI_PCIE_LPM_CONFIG_TYPE_L1,
+    WMI_PCIE_LPM_CONFIG_TYPE_L0S_L1,
+} wmi_pcie_lpm_config_type_e;
+
 typedef struct {
     /** TLV tag and len; tag equals
     * WMITLV_TAG_STRUC_wmi_energy_mgmt_pcie_lpm_cmd_fixed_param */
     A_UINT32 tlv_header;
     /** enable or disable PCIe LPM */
     A_UINT32 enable;
+    /** PCIe LPM config type */
+    A_UINT32 config_type; /* holds a wmi_pcie_lpm_config_type_e value */
 } wmi_energy_mgmt_pcie_lpm_cmd_fixed_param;
 
 typedef enum {
