@@ -1512,6 +1512,7 @@ typedef enum {
     WMITLV_TAG_STRUC_wmi_pdev_coex_stats,
     WMITLV_TAG_STRUC_wmi_vdev_traffic_monitoring_cmd_fixed_param,
     WMITLV_TAG_STRUC_wmi_energy_mgmt_dps_assisting_role_config_cmd_fixed_param,
+    WMITLV_TAG_STRUC_WMI_MAC_PHY_CAPABILITIES_EXT2,
 } WMITLV_TAG_ID;
 /*
  * IMPORTANT: Please add _ALL_ WMI Commands Here.
@@ -5990,7 +5991,8 @@ WMITLV_CREATE_PARAM_STRUC(WMI_SERVICE_READY_EXT_EVENTID);
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_STRUC, WMI_POWER_BOOST_CAPABILITIES, power_boost_capabilities, WMITLV_SIZE_VAR) \
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_STRUC, WMI_RSSI_ACCURACY_IMPROVEMENT_CAPABILITIES, rssi_accuracy_improvement_capabilities, WMITLV_SIZE_VAR) \
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_STRUC, wmi_wifi_radar_ltf_length_capabilities, wr_ltf_caps, WMITLV_SIZE_VAR) \
-    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_STRUC, wmi_wifi_radar_chain_capabilities, wr_chain_caps, WMITLV_SIZE_VAR)
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_STRUC, wmi_wifi_radar_chain_capabilities, wr_chain_caps, WMITLV_SIZE_VAR) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_STRUC, WMI_MAC_PHY_CAPABILITIES_EXT2, mac_phy_caps2, WMITLV_SIZE_VAR)
 WMITLV_CREATE_PARAM_STRUC(WMI_SERVICE_READY_EXT2_EVENTID);
 
 #define WMITLV_TABLE_WMI_SPECTRAL_CAPABILITIES_EVENTID(id,op,buf,len) \
