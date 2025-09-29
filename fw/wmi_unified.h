@@ -10153,6 +10153,9 @@ typedef enum {
 
     /* configure pdev coex stats period (millisecond units) */
     WMI_PDEV_PARAM_COEX_STATS_UPDATE_PERIOD,
+
+    /* To enable/disable XPAN SAP + STA power optimization */
+    WMI_PDEV_PARAM_XPAN_STA_PWRSAVE_ENABLE,
 } WMI_PDEV_PARAM;
 
 #define WMI_PDEV_ONLY_BSR_TRIG_IS_ENABLED(trig_type) WMI_GET_BITS(trig_type, 0, 1)
