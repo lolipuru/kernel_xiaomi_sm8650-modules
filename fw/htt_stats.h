@@ -5506,6 +5506,15 @@ typedef struct {
     A_UINT32 tqm_enqueue_msdu_count;
     A_UINT32 tqm_dropped_msdu_count;
     A_UINT32 tqm_dequeue_msdu_count;
+
+    A_UINT32 tqm_enqueue_msdu_count_ac[HTT_NUM_AC_WMM];
+    A_UINT32 tqm_dropped_msdu_count_ac[HTT_NUM_AC_WMM];
+    A_UINT32 tqm_dequeue_msdu_count_ac[HTT_NUM_AC_WMM];
+    A_UINT32 remove_msdu_ac[HTT_NUM_AC_WMM];
+    A_UINT32 remove_mpdu_ac[HTT_NUM_AC_WMM];
+    A_UINT32 remove_msdu_ttl_ac[HTT_NUM_AC_WMM];
+    A_UINT32 remove_mpdu_ttl_ac[HTT_NUM_AC_WMM];
+    A_UINT32 remove_mpdu_retries_ac[HTT_NUM_AC_WMM];
 } htt_stats_tx_tqm_pdev_tlv;
 /* preserve old name alias for new name consistent with the tag name */
 typedef htt_stats_tx_tqm_pdev_tlv htt_tx_tqm_pdev_stats_tlv_v;
@@ -8213,6 +8222,7 @@ typedef struct {
         /* upper 32 bits of the rx_bytes value */
         A_UINT32 high_32;
     } bytes_received;
+    A_UINT32  rx_msdu_cnt_ac[HTT_NUM_AC_WMM];
 } htt_stats_rx_pdev_fw_stats_tlv;
 /* preserve old name alias for new name consistent with the tag name */
 typedef htt_stats_rx_pdev_fw_stats_tlv htt_rx_pdev_fw_stats_tlv;
