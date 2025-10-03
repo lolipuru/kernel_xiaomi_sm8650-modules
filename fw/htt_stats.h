@@ -9473,7 +9473,7 @@ typedef struct {
 
     htt_tx_rate_stats_t npca_per_tx_su_punctured_mode[HTT_TX_PDEV_STATS_NUM_PUNCTURED_MODE_COUNTERS];
 
-    /* rate stats for iMCS 1.1, 3.1, 4.1, 7.1 */
+    /* PER stats for iMCS 1.1, 3.1, 4.1, 7.1 */
     htt_tx_rate_stats_t per_mcs_ext_3[HTT_TX_PDEV_STATS_NUM_EXTRA3_MCS_COUNTERS];
 } htt_stats_per_rate_stats_tlv;
 /* preserve old name alias for new name consistent with the tag name */
