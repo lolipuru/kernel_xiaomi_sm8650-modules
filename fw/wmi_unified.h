@@ -52195,7 +52195,7 @@ typedef struct {
     A_UINT32 tlv_header;
     /* VDEV identifier */
     A_UINT32 vdev_id;
-    /** TX RX packet count threshold value */
+    /** TX RX byte count value, in KB units */
     A_UINT32 data_threshold;
     /** duration of traffic monitoring, in unit of sec */
     A_UINT32 traffic_monitoring_time;
