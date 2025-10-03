@@ -1290,6 +1290,8 @@ typedef struct {
         /* upper 32 bits of the tx_bytes value */
         A_UINT32 high_32;
     } bytes_sent;
+    /* increment array based on AC */
+    A_UINT32 num_ppdu_tried_ota_per_ac[HTT_NUM_AC_WMM];
 } htt_stats_tx_pdev_cmn_tlv;
 /* preserve old name alias for new name consistent with the tag name */
 typedef htt_stats_tx_pdev_cmn_tlv htt_tx_pdev_stats_cmn_tlv;
@@ -6891,6 +6893,11 @@ typedef struct {
     A_UINT32 trigger_type_11bn[HTT_TX_PDEV_STATS_NUM_11BN_TRIGGER_TYPES];
     /* Stats for iMCS 1.1, 3.1, 4.1, 7.1 */
     A_UINT32 tx_mcs_ext_3[HTT_TX_PDEV_STATS_NUM_EXTRA3_MCS_COUNTERS];
+
+/*
+ * NOTE: THIS STRUCT HAS ONLY 4 BYTES OF SPACE LEFT
+ * WITHIN THE TARGET'S HTT_STATS_TLV_MAX_LEN SIZE LIMIT.
+ */
 } htt_stats_tx_pdev_rate_stats_tlv;
 /* preserve old name alias for new name consistent with the tag name */
 typedef htt_stats_tx_pdev_rate_stats_tlv htt_tx_pdev_rate_stats_tlv;
