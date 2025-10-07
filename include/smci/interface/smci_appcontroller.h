@@ -1,13 +1,12 @@
 /* SPDX-License-Identifier: GPL-2.0-only
  *
- * Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) 2024-2025 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
 #ifndef __SMCI_APPCONTROLLER_H
 #define __SMCI_APPCONTROLLER_H
 
-#include "smci_object.h"
-#include "IAppController.h"
+#include <linux/smci_object.h>
 
 #define SMCI_APPCONTROLLER_CBO_INTERFACE_WAIT UINT32_C(1)
 
@@ -32,13 +31,13 @@
 static inline int32_t
 smci_appcontroller_release(struct smci_object self)
 {
-	return IAppController_release(self);
+	return smci_object_invoke(self, SMCI_OBJECT_OP_RELEASE, 0, 0);
 }
 
 static inline int32_t
 smci_appcontroller_retain(struct smci_object self)
 {
-	return IAppController_retain(self);
+	return smci_object_invoke(self, SMCI_OBJECT_OP_RETAIN, 0, 0);
 }
 
 static inline int32_t
@@ -54,47 +53,103 @@ smci_appcontroller_opensession(struct smci_object self, uint32_t cancel_code_val
 	uint32_t *memref_out_sz4_ptr, struct smci_object *session_ptr, uint32_t *ret_value_ptr,
 	uint32_t *ret_origin_ptr)
 {
-	return IAppController_openSession(self, cancel_code_val,
-		connection_method_val, connection_data_val, param_types_val,
-		ex_param_types_val, i1_ptr, i1_len, i2_ptr,
-		i2_len, i3_ptr, i3_len, i4_ptr, i4_len,
-		o1_ptr, o1_len, o1_lenout, o2_ptr, o2_len,
-		o2_lenout, o3_ptr, o3_len, o3_lenout, o4_ptr,
-		o4_len, o4_lenout, imem1_val,
-		imem2_val, imem3_val, imem4_val,
-		memref_out_sz1_ptr, memref_out_sz2_ptr, memref_out_sz3_ptr,
-		memref_out_sz4_ptr, session_ptr, ret_value_ptr,
-		ret_origin_ptr);
+	union smci_object_arg a[15];
+	struct {
+		uint32_t m_cancel_code;
+		uint32_t m_connection_method;
+		uint32_t m_connection_data;
+		uint32_t m_param_types;
+		uint32_t m_ex_param_types;
+	} i;
+	struct {
+		uint32_t m_memref_out_sz1;
+		uint32_t m_memref_out_sz2;
+		uint32_t m_memref_out_sz3;
+		uint32_t m_memref_out_sz4;
+		uint32_t m_ret_value;
+		uint32_t m_ret_rigin;
+	} o;
+	int32_t result;
+
+	a[0].b = (struct smci_object_buf) { &i, 20 };
+	a[5].b = (struct smci_object_buf) { &o, 24 };
+	i.m_cancel_code = cancel_code_val;
+	i.m_connection_method = connection_method_val;
+	i.m_connection_data = connection_data_val;
+	i.m_param_types = param_types_val;
+	i.m_ex_param_types = ex_param_types_val;
+	a[1].bi = (struct smci_object_buf_in) { i1_ptr, i1_len * 1 };
+	a[2].bi = (struct smci_object_buf_in) { i2_ptr, i2_len * 1 };
+	a[3].bi = (struct smci_object_buf_in) { i3_ptr, i3_len * 1 };
+	a[4].bi = (struct smci_object_buf_in) { i4_ptr, i4_len * 1 };
+	a[6].b = (struct smci_object_buf) { o1_ptr, o1_len * 1 };
+	a[7].b = (struct smci_object_buf) { o2_ptr, o2_len * 1 };
+	a[8].b = (struct smci_object_buf) { o3_ptr, o3_len * 1 };
+	a[9].b = (struct smci_object_buf) { o4_ptr, o4_len * 1 };
+	a[10].o = imem1_val;
+	a[11].o = imem2_val;
+	a[12].o = imem3_val;
+	a[13].o = imem4_val;
+
+	result = smci_object_invoke(self, SMCI_APPCONTROLLER_OP_OPENSESSION, a,
+		SMCI_OBJECT_COUNTS_PACK(5, 5, 4, 1));
+
+	*o1_lenout = a[6].b.size / 1;
+	*o2_lenout = a[7].b.size / 1;
+	*o3_lenout = a[8].b.size / 1;
+	*o4_lenout = a[9].b.size / 1;
+	*memref_out_sz1_ptr = o.m_memref_out_sz1;
+	*memref_out_sz2_ptr = o.m_memref_out_sz2;
+	*memref_out_sz3_ptr = o.m_memref_out_sz3;
+	*memref_out_sz4_ptr = o.m_memref_out_sz4;
+	*session_ptr = a[14].o;
+	*ret_value_ptr = o.m_ret_value;
+	*ret_origin_ptr = o.m_ret_rigin;
+
+	return result;
 }
 
 static inline int32_t
 smci_appcontroller_unload(struct smci_object self)
 {
-	return IAppController_unload(self);
+	return smci_object_invoke(self, SMCI_APPCONTROLLER_OP_UNLOAD, 0, 0);
 }
 
 static inline int32_t
 smci_appcontroller_getappobject(struct smci_object self, struct smci_object *obj_ptr)
 {
-	return IAppController_getAppObject(self, obj_ptr);
+	union smci_object_arg a[1];
+
+	int32_t result = smci_object_invoke(self, SMCI_APPCONTROLLER_OP_GETAPPOBJECT, a,
+		SMCI_OBJECT_COUNTS_PACK(0, 0, 0, 1));
+
+	*obj_ptr = a[0].o;
+
+	return result;
 }
 
 static inline int32_t
 smci_appcontroller_installcbo(struct smci_object self, uint32_t uid_val, struct smci_object obj_val)
 {
-	return IAppController_installCBO(self, uid_val, obj_val);
+	union smci_object_arg a[2];
+
+	a[0].b = (struct smci_object_buf) { &uid_val, sizeof(uint32_t) };
+	a[1].o = obj_val;
+
+	return smci_object_invoke(self, SMCI_APPCONTROLLER_OP_INSTALLCBO, a,
+		SMCI_OBJECT_COUNTS_PACK(1, 0, 1, 0));
 }
 
 static inline int32_t
 smci_appcontroller_disconnect(struct smci_object self)
 {
-	return IAppController_disconnect(self);
+	return smci_object_invoke(self, SMCI_APPCONTROLLER_OP_DISCONNECT, 0, 0);
 }
 
 static inline int32_t
 smci_appcontroller_restart(struct smci_object self)
 {
-	return IAppController_restart(self);
+	return smci_object_invoke(self, SMCI_APPCONTROLLER_OP_RESTART, 0, 0);
 }
 
 #endif /* __SMCI_APPCONTROLLER_H */

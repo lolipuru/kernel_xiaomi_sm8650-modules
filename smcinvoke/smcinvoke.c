@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (c) 2016-2021, The Linux Foundation. All rights reserved.
- * Copyright (c) 2022-2023 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) 2022-2025 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
 #define pr_fmt(fmt) "smcinvoke: %s: " fmt, __func__
@@ -38,6 +38,9 @@
 #include <linux/kthread.h>
 #include "smcinvoke.h"
 #include "smcinvoke_object.h"
+#if IS_ENABLED(CONFIG_QCOM_SMCI_PROXY)
+#include <linux/smci_object.h>
+#endif
 #include "IClientEnv.h"
 #if IS_ENABLED(CONFIG_QSEECOM_PROXY)
 #include <linux/qseecom_kernel.h>
@@ -206,6 +209,10 @@ static long smcinvoke_ioctl(struct file *, unsigned int, unsigned long);
 static int smcinvoke_open(struct inode *, struct file *);
 static int smcinvoke_release(struct inode *, struct file *);
 static int release_cb_server(uint16_t);
+#if IS_ENABLED(CONFIG_QCOM_SMCI_PROXY)
+int get_smci_kernel_fun_ops(void);
+#endif
+
 
 static const struct file_operations g_smcinvoke_fops = {
 	.owner		= THIS_MODULE,
@@ -3212,6 +3219,14 @@ static int smcinvoke_probe(struct platform_device *pdev)
 	rc = get_qseecom_kernel_fun_ops();
 	if (rc) {
 		pr_err("failed to get qseecom kernel func ops %d", rc);
+	}
+#endif
+#if IS_ENABLED(CONFIG_QCOM_SMCI_PROXY)
+	/*If the api fails to get the func ops, print the error and continue
+	* Do not treat it as fatal*/
+	rc = get_smci_kernel_fun_ops();
+	if (rc) {
+		pr_err("failed to get smci kernel func ops %d", rc);
 	}
 #endif
 	__wakeup_postprocess_kthread(&smcinvoke[ADCI_WORKER_THREAD]);
