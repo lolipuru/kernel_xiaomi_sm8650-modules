@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (c) 2018-2021, The Linux Foundation. All rights reserved.
- * Copyright (c) 2021-2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
 #include "bus.h"
@@ -228,6 +228,22 @@ int cnss_bus_alloc_fw_mem(struct cnss_plat_data *plat_priv)
 		cnss_pr_err("Unsupported bus type: %d\n",
 			    plat_priv->bus_type);
 		return -EINVAL;
+	}
+}
+
+void cnss_bus_free_fw_mem(struct cnss_plat_data *plat_priv, int k)
+{
+	if (!plat_priv)
+		return;
+
+	switch (plat_priv->bus_type) {
+	case CNSS_BUS_PCI:
+		cnss_pci_free_fw_mem(plat_priv->bus_priv, k);
+		return;
+	default:
+		cnss_pr_err("Unsupported bus type: %d\n",
+			    plat_priv->bus_type);
+		return;
 	}
 }
 

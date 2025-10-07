@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (c) 2016-2021, The Linux Foundation. All rights reserved.
- * Copyright (c) 2021-2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
 #include <linux/delay.h>
@@ -2873,6 +2873,42 @@ static int cnss_qdss_trace_req_data_hdlr(struct cnss_plat_data *plat_priv,
 	return ret;
 }
 
+#if IS_ENABLED(CONFIG_MEM_ALLOC_FALLBACK)
+static bool
+cnss_req_mem_results_handle(struct cnss_plat_data *plat_priv,
+			    int ret)
+{
+	cnss_pr_dbg("process results %d", ret);
+
+	/*
+	 * Only HSP to be veriefd support retry,
+	 * so consider HSP firstly.
+	 * Other chips keep the same logic as before
+	 */
+	if (plat_priv->device_id != QCA6490_DEVICE_ID)
+		return !!ret;
+
+	if (ret == -ENOMEM) { /* continue send qmi resonse to ask for retry */
+		cnss_pr_dbg("clear mem seg len\n");
+		cnss_bus_free_fw_mem(plat_priv, QMI_WLFW_MAX_NUM_MEM_SEG_V01);
+		plat_priv->smaller_size_mem_req = true;
+		return false;
+	} else if (ret == 0) { /* continue send qmi response */
+		plat_priv->smaller_size_mem_req = false;
+		return false;
+	} else { /* break */
+		return true;
+	}
+}
+#else
+static bool
+cnss_req_mem_results_handle(struct cnss_plat_data *plat_priv,
+			    int ret)
+{
+	return !!ret;
+}
+#endif
+
 static void cnss_driver_event_work(struct work_struct *work)
 {
 	struct cnss_plat_data *plat_priv =
@@ -2880,6 +2916,7 @@ static void cnss_driver_event_work(struct work_struct *work)
 	struct cnss_driver_event *event;
 	unsigned long flags;
 	int ret = 0;
+	bool is_break = false;
 
 	if (!plat_priv) {
 		cnss_pr_err("plat_priv is NULL!\n");
@@ -2910,7 +2947,8 @@ static void cnss_driver_event_work(struct work_struct *work)
 			break;
 		case CNSS_DRIVER_EVENT_REQUEST_MEM:
 			ret = cnss_bus_alloc_fw_mem(plat_priv);
-			if (ret)
+			is_break = cnss_req_mem_results_handle(plat_priv, ret);
+			if (is_break)
 				break;
 			ret = cnss_wlfw_respond_mem_send_sync(plat_priv);
 			break;
