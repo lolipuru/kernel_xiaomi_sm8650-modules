@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (c) 2015-2021, The Linux Foundation. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
 #include <linux/completion.h>
@@ -29,6 +30,47 @@ static void gsi_wq_print_dp_stats(struct work_struct *work);
 static DECLARE_DELAYED_WORK(gsi_print_dp_stats_work, gsi_wq_print_dp_stats);
 static void gsi_wq_update_dp_stats(struct work_struct *work);
 static DECLARE_DELAYED_WORK(gsi_update_dp_stats_work, gsi_wq_update_dp_stats);
+
+static ssize_t gsi_dump_ch_scratch_info(struct file *file,
+		const char __user *buf, size_t count, loff_t *ppos)
+{
+	u32 chan_hdl = 0;
+	unsigned long missing;
+	char *sptr, *token;
+
+	if (count >= sizeof(dbg_buff))
+		return -EINVAL;
+
+	missing = copy_from_user(dbg_buff, buf, count);
+	if (missing)
+		return -EFAULT;
+
+	dbg_buff[count] = '\0';
+	sptr = dbg_buff;
+	token = strsep(&sptr, " ");
+	if (!token)
+		return -EINVAL;
+	if (kstrtou32(token, 0, &chan_hdl))
+		return -EINVAL;
+
+	TDBG("chan_hdl=%u\n", chan_hdl);
+	if (!gsi_ctx) {
+		TERR("%s:%d gsi context not allocated\n", __func__, __LINE__);
+		return -EINVAL;
+	}
+
+	if (chan_hdl >= gsi_ctx->max_ch) {
+		TERR("invalid chan id %u\n", chan_hdl);
+		return -EINVAL;
+	}
+	if (gsi_ctx->per.ver < GSI_VER_3_0) {
+		TERR("invalid gsi version  %u\n", gsi_ctx->per.ver);
+		return -EINVAL;
+	}
+
+	gsi_dump_ch_scratch(chan_hdl);
+	return count;
+}
 
 static ssize_t gsi_dump_evt(struct file *file,
 		const char __user *buf, size_t count, loff_t *ppos)
@@ -679,6 +721,10 @@ done:
 	return simple_read_from_buffer(buf, count, ppos, dbg_buff, cnt);
 }
 
+static const struct file_operations gsi_ch_dump_scratch_ops = {
+	.write = gsi_dump_ch_scratch_info,
+};
+
 static const struct file_operations gsi_ev_dump_ops = {
 	.write = gsi_dump_evt,
 };
@@ -742,6 +788,13 @@ void gsi_debugfs_init(void)
 			dent, 0, &gsi_ch_dump_ops);
 	if (!dfile || IS_ERR(dfile)) {
 		TERR("fail to create ch_dump file\n");
+		goto fail;
+	}
+
+	dfile = debugfs_create_file("ch_scrach_dump", write_only_mode,
+			dent, 0, &gsi_ch_dump_scratch_ops);
+	if (!dfile || IS_ERR(dfile)) {
+		TERR("fail to create ch_scrach_dump file\n");
 		goto fail;
 	}
 
