@@ -61,6 +61,7 @@
 	dp_display_state_log("remove "#x); }
 
 #define MAX_TMDS_CLOCK_HDMI_1_4 340000
+#define MAX_TIMES_RECONNECT 4
 
 enum dp_display_states {
 	DP_STATE_DISCONNECTED           = 0,
@@ -76,6 +77,9 @@ enum dp_display_states {
 	DP_STATE_HDCP_ABORTED           = BIT(9),
 	DP_STATE_SRC_PWRDN              = BIT(10),
 	DP_STATE_TUI_ACTIVE             = BIT(11),
+#ifdef MI_DISPLAY_MODIFY
+	DP_STATE_PANEL_RECONNECT        = BIT(12),
+#endif
 };
 
 static char *dp_display_state_name(enum dp_display_states state)
@@ -132,6 +136,12 @@ static char *dp_display_state_name(enum dp_display_states state)
 	if (state & DP_STATE_TUI_ACTIVE)
 		len += scnprintf(buf + len, sizeof(buf) - len, "|%s|",
 			"TUI_ACTIVE");
+
+#ifdef MI_DISPLAY_MODIFY
+	if (state & DP_STATE_PANEL_RECONNECT)
+		len += scnprintf(buf + len, sizeof(buf) - len, "|%s|",
+				"PANEL_RECONNECT");
+#endif
 
 	if (!strlen(buf))
 		return "DISCONNECTED";
@@ -220,6 +230,9 @@ struct dp_display_private {
 	bool pm_qos_requested;
 
 	struct notifier_block usb_nb;
+#ifdef MI_DISPLAY_MODIFY
+	int reconnect_times;
+#endif
 };
 
 static const struct of_device_id dp_dt_match[] = {
@@ -884,11 +897,20 @@ static bool dp_display_send_hpd_event(struct dp_display_private *dp)
 	connector->status = display->is_sst_connected ? connector_status_connected :
 			connector_status_disconnected;
 
+
+#ifdef MI_DISPLAY_MODIFY
+	if (dp->cached_connector_status == connector->status && !dp->debug->skip_uevent) {
+		DP_DEBUG("connector status (%d) unchanged, skipping uevent\n",
+				dp->cached_connector_status);
+		return false;
+	}
+#else
 	if (dp->cached_connector_status == connector->status) {
 		DP_DEBUG("connector status (%d) unchanged, skipping uevent\n",
 				dp->cached_connector_status);
 		return false;
 	}
+#endif
 
 	dp->cached_connector_status = connector->status;
 
@@ -937,6 +959,15 @@ static int dp_display_send_hpd_notification(struct dp_display_private *dp, bool 
 	 * message. This check here will avoid any unintended duplicate
 	 * notifications.
 	 */
+#ifdef MI_DISPLAY_MODIFY
+	if (dp_display_state_is(DP_STATE_CONNECT_NOTIFIED) && hpd && !dp->debug->skip_uevent) {
+		DP_DEBUG("connection notified already, skip notification\n");
+		goto skip_wait;
+	} else if (dp_display_state_is(DP_STATE_DISCONNECT_NOTIFIED) && !hpd && !dp->debug->skip_uevent) {
+		DP_DEBUG("disonnect notified already, skip notification\n");
+		goto skip_wait;
+	}
+#else
 	if (dp_display_state_is(DP_STATE_CONNECT_NOTIFIED) && hpd) {
 		DP_DEBUG("connection notified already, skip notification\n");
 		goto skip_wait;
@@ -944,6 +975,7 @@ static int dp_display_send_hpd_notification(struct dp_display_private *dp, bool 
 		DP_DEBUG("disonnect notified already, skip notification\n");
 		goto skip_wait;
 	}
+#endif
 
 	dp->aux->state |= DP_STATE_NOTIFICATION_SENT;
 
@@ -1336,9 +1368,33 @@ static int dp_display_process_hpd_high(struct dp_display_private *dp)
 	/*
 	 * ETIMEDOUT --> cable may have been removed
 	 * ENOTCONN --> no downstream device connected
+	 * ENOLINK --> panel edid read error
 	 */
 	if (rc == -ETIMEDOUT || rc == -ENOTCONN)
 		goto err_unready;
+
+#ifdef MI_DISPLAY_MODIFY
+	/*
+	 * retry. reconnect dp,
+	 * init host -> uninit host -> init host
+	 * reget edid data.
+	 */
+	if(dp->debug->read_edid_error || rc == -ENOLINK) {
+		dp->debug->read_edid_error = false;
+
+		if(dp_display_state_is(DP_STATE_PANEL_RECONNECT)) {
+			dp->reconnect_times--;
+			if(dp->reconnect_times <= 0)
+				dp_display_state_remove(DP_STATE_PANEL_RECONNECT);
+
+			DP_INFO("dp reconnected, read edid error. reconnect:%d\n",dp->reconnect_times);
+			goto err_unready;
+		}
+
+	}
+
+	DP_INFO("Process panel status Ok!!!\n");
+#endif
 
 	dp->link->process_request(dp->link);
 	dp->panel->handle_sink_request(dp->panel);
@@ -1367,7 +1423,11 @@ static int dp_display_process_hpd_high(struct dp_display_private *dp)
 err_mst:
 	dp_display_update_mst_state(dp, false);
 err_unready:
+#ifdef MI_DISPLAY_MODIFY
+	dp_display_host_deinit(dp);
+#else
 	dp_display_host_unready(dp);
+#endif
 err_state:
 	dp_display_state_remove(DP_STATE_CONNECTED);
 err_unlock:
@@ -1510,7 +1570,9 @@ static int dp_display_usbpd_configure_cb(struct device *dev)
 	}
 
 	mutex_lock(&dp->session_lock);
-
+#ifdef MI_DISPLAY_MODIFY
+	dp->reconnect_times = MAX_TIMES_RECONNECT;
+#endif
 	if (dp_display_state_is(DP_STATE_TUI_ACTIVE)) {
 		dp_display_state_log("[TUI is active]");
 		mutex_unlock(&dp->session_lock);
@@ -1519,6 +1581,9 @@ static int dp_display_usbpd_configure_cb(struct device *dev)
 
 	dp_display_state_remove(DP_STATE_ABORTED);
 	dp_display_state_add(DP_STATE_CONFIGURED);
+#ifdef MI_DISPLAY_MODIFY
+	dp_display_state_add(DP_STATE_PANEL_RECONNECT);
+#endif
 
 	rc = dp_display_host_init(dp);
 	if (rc) {
@@ -1701,7 +1766,9 @@ static int dp_display_handle_disconnect(struct dp_display_private *dp, bool skip
 	dp_display_host_unready(dp);
 
 	dp->tot_lm_blks_in_use = 0;
-
+#ifdef MI_DISPLAY_MODIFY
+	dp->reconnect_times = MAX_TIMES_RECONNECT;
+#endif
 	mutex_unlock(&dp->session_lock);
 
 	SDE_EVT32_EXTERNAL(SDE_EVTLOG_FUNC_EXIT, dp->state);

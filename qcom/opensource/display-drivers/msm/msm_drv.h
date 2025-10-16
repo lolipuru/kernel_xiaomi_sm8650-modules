@@ -59,6 +59,10 @@
 
 #include "sde_power_handle.h"
 
+#ifdef MI_DISPLAY_MODIFY
+#include <drm/mi_disp.h>
+#endif
+
 #define GET_MAJOR_REV(rev)		((rev) >> 28)
 #define GET_MINOR_REV(rev)		(((rev) >> 16) & 0xFFF)
 #define GET_STEP_REV(rev)		((rev) & 0xFFFF)
@@ -216,6 +220,9 @@ enum msm_mdp_conn_property {
 	CONNECTOR_PROP_DEMURA_PANEL_ID,
 	CONNECTOR_PROP_DIMMING_BL_LUT,
 	CONNECTOR_PROP_DNSC_BLUR,
+#ifdef MI_DISPLAY_MODIFY
+	CONNECTOR_PROP_MI_MODE_INFO,
+#endif
 
 	/* # of blob properties */
 	CONNECTOR_PROP_BLOBCOUNT,
@@ -257,6 +264,9 @@ enum msm_mdp_conn_property {
 	CONNECTOR_PROP_WB_ROT_TYPE,
 	CONNECTOR_PROP_WB_ROT_BYTES_PER_CLK,
 	CONNECTOR_PROP_BPP_MODE,
+#ifdef MI_DISPLAY_MODIFY
+	CONNECTOR_PROP_MI_LAYER_INFO,
+#endif
 
 	/* total # of properties */
 	CONNECTOR_PROP_COUNT
@@ -872,6 +882,9 @@ struct msm_mode_info {
 	u32 avr_step_fps;
 	struct msm_display_wd_jitter_config wd_jitter;
 	u32 vpadding;
+#ifdef MI_DISPLAY_MODIFY
+	struct mi_mode_info mi_mode_info;
+#endif
 };
 
 /**

@@ -110,6 +110,10 @@ static void dp_altmode_send_pan_ack(struct altmode_client *amclient,
 static int dp_altmode_notify(void *priv, void *data, size_t len)
 {
 	int rc = 0;
+#ifdef MI_DISPLAY_MODIFY
+	int timeout = 6;
+#endif
+
 	struct dp_altmode_private *altmode =
 			(struct dp_altmode_private *) priv;
 	u8 port_index, dp_data, orientation;
@@ -201,8 +205,25 @@ static int dp_altmode_notify(void *priv, void *data, size_t len)
 	if (altmode->forced_disconnect)
 		goto ack;
 
+#ifdef MI_DISPLAY_MODIFY
+	/*
+	 * reference dp_gpio_hpd.c
+	 * fix dp to dp training abnormal.
+	 */
+	while (timeout) {
+		timeout--;
+		msleep(50);
+
+		if (altmode->dp_cb && altmode->dp_cb->attention) {
+			altmode->dp_cb->attention(altmode->dev);
+		}
+	}
+	DP_INFO("Callback DP display attention\n");
+#else
 	if (altmode->dp_cb && altmode->dp_cb->attention)
 		altmode->dp_cb->attention(altmode->dev);
+#endif
+
 ack:
 	dp_altmode_send_pan_ack(altmode->amclient, port_index);
 	return rc;

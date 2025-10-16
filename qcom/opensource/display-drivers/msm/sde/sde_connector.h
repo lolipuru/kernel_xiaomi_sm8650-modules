@@ -15,6 +15,9 @@
 #include "msm_prop.h"
 #include "sde_kms.h"
 #include "sde_fence.h"
+#ifdef MI_DISPLAY_MODIFY
+#include "mi_sde_connector.h"
+#endif
 
 #define SDE_CONNECTOR_NAME_SIZE	16
 #define SDE_CONNECTOR_DHDR_MEMPOOL_MAX_SIZE	SZ_32
@@ -601,6 +604,9 @@ struct sde_connector {
 	int dpms_mode;
 	int lp_mode;
 	int last_panel_power_mode;
+#ifdef MI_DISPLAY_MODIFY
+	int max_esd_check_power_mode;
+#endif
 
 	struct msm_property_info property_info;
 	struct msm_property_data property_data[CONNECTOR_PROP_COUNT];
@@ -610,6 +616,9 @@ struct sde_connector {
 	struct drm_property_blob *blob_dither;
 	struct drm_property_blob *blob_mode_info;
 	struct drm_property_blob *blob_panel_id;
+#ifdef MI_DISPLAY_MODIFY
+	struct drm_property_blob *blob_mi_mode_info;
+#endif
 
 	struct sde_connector_evt event_table[SDE_CONN_EVENT_COUNT];
 	spinlock_t event_lock;
@@ -662,6 +671,9 @@ struct sde_connector {
 
 	bool hwfence_wb_retire_fences_enable;
 
+#ifdef MI_DISPLAY_MODIFY
+	struct mi_layer_flags mi_layer_flags;
+#endif
 	u32 max_mode_width;
 };
 
@@ -789,6 +801,14 @@ struct sde_connector_state {
 #define sde_connector_get_out_fb(S) \
 	((S) ? to_sde_connector_state((S))->out_fb : 0)
 
+#ifdef MI_DISPLAY_MODIFY
+/**
+ * sde_connector_update_panel_dead - update connector panel_dead property
+ * @conn: pointer to drm connector
+ * @is_dead: bool to set panel_dead property
+ */
+void sde_connector_update_panel_dead(struct drm_connector *conn, bool is_dead);
+#endif
 /**
  * sde_connector_get_kms - helper to get sde_kms from connector
  * @conn: Pointer to drm connector

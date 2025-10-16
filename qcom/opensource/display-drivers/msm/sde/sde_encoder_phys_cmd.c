@@ -10,6 +10,9 @@
 #include "sde_core_irq.h"
 #include "sde_formats.h"
 #include "sde_trace.h"
+#ifdef MI_DISPLAY_MODIFY
+#include "mi_sde_encoder.h"
+#endif
 
 #define SDE_DEBUG_CMDENC(e, fmt, ...) SDE_DEBUG("enc%d intf%d " fmt, \
 		(e) && (e)->base.parent ? \
@@ -532,6 +535,12 @@ static void sde_encoder_phys_cmd_te_rd_ptr_irq(void *arg, int irq_idx)
 	SDE_ATRACE_BEGIN("rd_ptr_irq");
 	cmd_enc = to_sde_encoder_phys_cmd(phys_enc);
 	ctl = phys_enc->hw_ctl;
+#ifdef MI_DISPLAY_MODIFY
+	if (!ctl) {
+		SDE_ATRACE_END("rd_ptr_irq");
+		return;
+	}
+#endif
 
 	if (ctl->ops.get_scheduler_status)
 		scheduler_status = ctl->ops.get_scheduler_status(ctl);
@@ -579,6 +588,12 @@ static void sde_encoder_phys_cmd_wr_ptr_irq(void *arg, int irq_idx)
 	SDE_ATRACE_BEGIN("wr_ptr_irq");
 	ctl = phys_enc->hw_ctl;
 	qsync_mode = sde_connector_get_qsync_mode(phys_enc->connector);
+#ifdef MI_DISPLAY_MODIFY
+	if (!ctl) {
+		SDE_ATRACE_END("wr_ptr_irq");
+		return;
+	}
+#endif
 
 	if (atomic_add_unless(&phys_enc->pending_retire_fence_cnt, -1, 0)) {
 		event = SDE_ENCODER_FRAME_EVENT_SIGNAL_RETIRE_FENCE;
@@ -1998,6 +2013,10 @@ static int _sde_encoder_phys_cmd_wait_for_wr_ptr(
 		return -EINVAL;
 	}
 	ctl = phys_enc->hw_ctl;
+#ifdef MI_DISPLAY_MODIFY
+	if (!ctl)
+		return -EINVAL;
+#endif
 	c_conn = to_sde_connector(phys_enc->connector);
 	timeout_ms = phys_enc->kickoff_timeout_ms;
 

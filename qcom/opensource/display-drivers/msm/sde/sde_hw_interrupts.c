@@ -446,9 +446,11 @@ static void sde_hw_intr_dispatch_irq(struct sde_hw_intr *intr,
 				end_idx > intr->sde_irq_map_size)
 			continue;
 
+#ifdef MI_DISPLAY_MODIFY
 		/* Skip the interrupts which are not enabled */
-		 if (!intr->cache_irq_mask[reg_idx])
-			continue;
+		 //if (!intr->cache_irq_mask[reg_idx])
+			//continue;
+#endif
 
 		/* Read interrupt status */
 		irq_status = SDE_REG_READ(&intr->hw, intr->sde_irq_tbl[reg_idx].status_off);

@@ -455,7 +455,17 @@ struct dsi_ctrl_hw_ops {
 	 */
 	void (*set_video_timing)(struct dsi_ctrl_hw *ctrl,
 				 struct dsi_mode_info *mode);
-
+#ifdef MI_DISPLAY_MODIFY
+	/**
+	 * get_video_timing() - get the timing for video frame
+	 * @ctrl:          Pointer to controller host hardware.
+	 * @type:          Video timming type.
+	 *
+	 * Get the video timing parameters for the DSI video mode operation.
+	 */
+	u32 (*get_video_timing)(struct dsi_ctrl_hw *ctrl,
+				 const char *type);
+#endif
 	/**
 	 * cmd_engine_setup() - setup dsi host controller for command mode
 	 * @ctrl:          Pointer to the controller host hardware.

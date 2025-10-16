@@ -1032,6 +1032,10 @@ int dsi_phy_enable(struct msm_dsi_phy *phy,
 	phy->cfg.data_lanes = config->common_config.data_lanes;
 	phy->cfg.pll_source = pll_source;
 	phy->cfg.bit_clk_rate_hz = config->bit_clk_rate_hz;
+#ifdef MI_DISPLAY_MODIFY
+	phy->cfg.clk_strength = config->common_config.clk_strength;
+	phy->cfg.deemph_eq_strength = config->common_config.deemph_eq_strength;
+#endif
 
 	/**
 	 * If PHY timing parameters are not present in panel dtsi file,

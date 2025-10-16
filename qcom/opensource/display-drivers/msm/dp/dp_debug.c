@@ -2314,6 +2314,10 @@ static int dp_debug_init_sim(struct dp_debug_private *debug, struct dentry *dir)
 
 	debugfs_create_bool("force_multi_func", 0644, dir, &debug->hpd->force_multi_func);
 
+#ifdef MI_DISPLAY_MODIFY
+	debugfs_create_bool("read_edid_error", 0644, dir, &debug->dp_debug.read_edid_error);
+#endif
+
 	return rc;
 }
 

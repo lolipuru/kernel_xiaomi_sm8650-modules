@@ -114,6 +114,9 @@ struct dp_debug {
 	u32 max_pclk_khz;
 	bool force_encryption;
 	bool skip_uevent;
+#ifdef MI_DISPLAY_MODIFY
+	bool read_edid_error;
+#endif
 	char hdcp_status[SZ_128];
 	bool mst_sim_add_con;
 	bool mst_sim_remove_con;
