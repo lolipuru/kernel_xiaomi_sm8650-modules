@@ -2756,7 +2756,8 @@ int dsi_panel_alloc_cmd_packets(struct dsi_panel_cmd_set *cmd,
 }
 
 #ifdef MI_DISPLAY_MODIFY
-int dsi_panel_parse_cmd_sets_sub(struct dsi_panel_cmd_set *cmd,
+int dsi_panel_parse_cmd_sets_sub(struct dsi_panel *panel,
+					struct dsi_panel_cmd_set *cmd,
 #else
 static int dsi_panel_parse_cmd_sets_sub(struct dsi_panel *panel,
 					struct dsi_panel_cmd_set *cmd,
@@ -4209,12 +4210,12 @@ int dsi_panel_parse_esd_reg_read_configs(struct dsi_panel *panel)
 	if (!esd_config)
 		return -EINVAL;
 #ifdef MI_DISPLAY_MODIFY
-	dsi_panel_parse_cmd_sets_sub(&esd_config->offset_cmd,
+	dsi_panel_parse_cmd_sets_sub(panel, &esd_config->offset_cmd,
 				DSI_CMD_SET_MI_PANEL_STATUS_OFFSET, utils);
 	if (!esd_config->offset_cmd.count) {
 		DSI_DEBUG("panel status offset command parsing failed\n");
 	}
-	dsi_panel_parse_cmd_sets_sub(&esd_config->after_cmd,
+	dsi_panel_parse_cmd_sets_sub(panel, &esd_config->after_cmd,
 				DSI_CMD_SET_MI_PANEL_STATUS_AFTER, utils);
 	if (!esd_config->after_cmd.count) {
 		DSI_DEBUG("panel status after command parsing failed\n");

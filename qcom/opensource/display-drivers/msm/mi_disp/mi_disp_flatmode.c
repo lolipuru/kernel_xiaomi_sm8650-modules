@@ -62,12 +62,12 @@ static int mi_dsi_panel_parse_flatmode_configs(
 	if (!config->flatmode_check_enabled)
 		goto error;
 
-	dsi_panel_parse_cmd_sets_sub(&config->offset_cmd,
+	dsi_panel_parse_cmd_sets_sub(panel, &config->offset_cmd,
 				DSI_CMD_SET_MI_FLATMODE_STATUS_OFFSET, utils);
 	if (!config->offset_cmd.count)
 		DISP_INFO("flat mode status offset command parsing failed\n");
 
-	dsi_panel_parse_cmd_sets_sub(&config->status_cmd,
+	dsi_panel_parse_cmd_sets_sub(panel, &config->status_cmd,
 				DSI_CMD_SET_MI_FLATMODE_STATUS, utils);
 	if (!config->status_cmd.count) {
 		DISP_ERROR("flat mode status command parsing failed\n");
@@ -126,7 +126,7 @@ static int mi_dsi_panel_parse_flatmode_configs(
 		goto error5;
 	}
 
-	dsi_panel_parse_cmd_sets_sub(&config->offset_end_cmd,
+	dsi_panel_parse_cmd_sets_sub(panel, &config->offset_end_cmd,
 				DSI_CMD_SET_MI_FLATMODE_STATUS_OFFSET_END, utils);
 	if (!config->offset_end_cmd.count) {
 		DISP_INFO("flat mode status end command parsing failed\n");

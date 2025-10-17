@@ -4613,7 +4613,7 @@ int dsi_panel_parse_build_id_read_config(struct dsi_panel *panel)
 		return -EINVAL;
 	}
 
-	dsi_panel_parse_cmd_sets_sub(&id_config->id_cmd,
+	dsi_panel_parse_cmd_sets_sub(panel, &id_config->id_cmd,
 			DSI_CMD_SET_MI_PANEL_BUILD_ID, utils);
 	if (!(id_config->id_cmd.count)) {
 		DISP_ERROR("panel build id read command parsing failed\n");
@@ -4704,14 +4704,14 @@ int dsi_panel_parse_wp_reg_read_config(struct dsi_panel *panel)
 	if (!wp_config)
 		return -EINVAL;
 
-	dsi_panel_parse_cmd_sets_sub(&wp_config->wp_cmd,
+	dsi_panel_parse_cmd_sets_sub(panel, &wp_config->wp_cmd,
 			DSI_CMD_SET_MI_PANEL_WP_READ, utils);
 	if (!wp_config->wp_cmd.count) {
 		DISP_ERROR("wp_info read command parsing failed\n");
 		return -EINVAL;
 	}
 
-	dsi_panel_parse_cmd_sets_sub(&wp_config->pre_tx_cmd,
+	dsi_panel_parse_cmd_sets_sub(panel, &wp_config->pre_tx_cmd,
 			DSI_CMD_SET_MI_PANEL_WP_READ_PRE_TX, utils);
 	if (!wp_config->pre_tx_cmd.count)
 		DISP_INFO("wp_info pre command parsing failed\n");
@@ -4752,19 +4752,19 @@ int dsi_panel_parse_cell_id_read_config(struct dsi_panel *panel)
 	if (!cell_id_config)
 		return -EINVAL;
 
-	dsi_panel_parse_cmd_sets_sub(&cell_id_config->cell_id_cmd,
+	dsi_panel_parse_cmd_sets_sub(panel, &cell_id_config->cell_id_cmd,
 			DSI_CMD_SET_MI_PANEL_CELL_ID_READ, utils);
 	if (!cell_id_config->cell_id_cmd.count) {
 		DISP_ERROR("cell_id_info read command parsing failed\n");
 		return -EINVAL;
 	}
 
-	dsi_panel_parse_cmd_sets_sub(&cell_id_config->pre_tx_cmd,
+	dsi_panel_parse_cmd_sets_sub(panel, &cell_id_config->pre_tx_cmd,
 			DSI_CMD_SET_MI_PANEL_CELL_ID_READ_PRE_TX, utils);
 	if (!cell_id_config->pre_tx_cmd.count)
 		DISP_INFO("cell_id_info pre command parsing failed\n");
 
-	dsi_panel_parse_cmd_sets_sub(&cell_id_config->after_tx_cmd,
+	dsi_panel_parse_cmd_sets_sub(panel, &cell_id_config->after_tx_cmd,
 			DSI_CMD_SET_MI_PANEL_CELL_ID_READ_AFTER_TX, utils);
 	if (!cell_id_config->after_tx_cmd.count)
 		DISP_INFO("cell_id_info after command parsing failed\n");

@@ -466,7 +466,8 @@ int dsi_panel_tx_cmd_set(struct dsi_panel *panel,
 		enum dsi_cmd_set_type type);
 int dsi_panel_update_backlight(struct dsi_panel *panel, u32 bl_lvl);
 
-int dsi_panel_parse_cmd_sets_sub(struct dsi_panel_cmd_set *cmd,
+int dsi_panel_parse_cmd_sets_sub(struct dsi_panel *panel,
+					struct dsi_panel_cmd_set *cmd,
 					enum dsi_cmd_set_type type,
 					struct dsi_parser_utils *utils);
 int dsi_panel_gamma_switch_locked(struct dsi_panel *panel);
