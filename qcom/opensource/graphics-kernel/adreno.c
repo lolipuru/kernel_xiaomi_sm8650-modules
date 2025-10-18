@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (c) 2002,2007-2021, The Linux Foundation. All rights reserved.
- * Copyright (c) 2022-2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 #include <linux/component.h>
 #include <linux/delay.h>
@@ -1329,6 +1329,15 @@ int adreno_device_probe(struct platform_device *pdev,
 	 */
 	if (!IS_ERR_OR_NULL(adreno_dev->gpuhtw_llc_slice))
 		kgsl_mmu_set_feature(device, KGSL_MMU_LLCC_ENABLE);
+
+	/*
+	 * Force no write allocate for A3x, A5x, A6x and all gen7 targets
+	 * except gen_7_9_x. gen_7_9_x uses write allocate
+	 */
+	if (adreno_is_a3xx(adreno_dev) || adreno_is_a5xx(adreno_dev) ||
+		adreno_is_a6xx(adreno_dev) ||
+		(adreno_is_gen7(adreno_dev) && !adreno_is_gen7_9_x(adreno_dev)))
+		kgsl_mmu_set_feature(device, KGSL_MMU_FORCE_LLCC_NWA);
 
 	 /* Bind the components before doing the KGSL platform probe. */
 	status = component_bind_all(dev, NULL);
