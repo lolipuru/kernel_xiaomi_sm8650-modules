@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (c) 2015-2021, The Linux Foundation. All rights reserved.
- * Copyright (c) 2021-2024 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
 #include <linux/module.h>
@@ -2737,6 +2737,42 @@ unsigned int cnss_get_qmi_timeout(struct cnss_plat_data *plat_priv)
 	return QMI_WLFW_TIMEOUT_MS;
 }
 
+#if IS_ENABLED(CONFIG_MEM_ALLOC_FALLBACK)
+static void
+cnss_fw_mem_free_check(struct  cnss_plat_data *plat_priv,
+		       const struct wlfw_request_mem_ind_msg_v01 *ind_msg)
+{
+	int i = 0;
+
+	if (plat_priv->device_id != QCA6490_DEVICE_ID)
+		return;
+
+	cnss_pr_dbg("old len %d new len %d", plat_priv->fw_mem_seg_len,
+		    ind_msg->mem_seg_len);
+
+	if (ind_msg->mem_seg_len > plat_priv->fw_mem_seg_len)
+		goto update_para;
+
+	/* free the old unused fw_mem entry */
+	for (i = ind_msg->mem_seg_len; i < plat_priv->fw_mem_seg_len; i++)
+		cnss_bus_free_fw_mem(plat_priv, i);
+
+update_para:
+	for (i = 0; i < plat_priv->fw_mem_seg_len; i++) {
+		if (plat_priv->fw_mem[i].size != 0 &&
+		    ind_msg->mem_seg[i].size != plat_priv->fw_mem[i].size)
+			/* since len is different, need re-alloc later */
+			cnss_bus_free_fw_mem(plat_priv, i);
+	}
+}
+#else
+static void
+cnss_fw_mem_free_check(struct cnss_plat_data *plat_priv,
+		       const struct wlfw_request_mem_ind_msg_v01 *ind_msg)
+{
+}
+#endif
+
 static void cnss_wlfw_request_mem_ind_cb(struct qmi_handle *qmi_wlfw,
 					 struct sockaddr_qrtr *sq,
 					 struct qmi_txn *txn, const void *data)
@@ -2758,8 +2794,9 @@ static void cnss_wlfw_request_mem_ind_cb(struct qmi_handle *qmi_wlfw,
 		return;
 	}
 
-	plat_priv->fw_mem_seg_len = ind_msg->mem_seg_len;
-	for (i = 0; i < plat_priv->fw_mem_seg_len; i++) {
+	cnss_fw_mem_free_check(plat_priv, ind_msg);
+
+	for (i = 0; i < ind_msg->mem_seg_len; i++) {
 		cnss_pr_dbg("FW requests for memory, size: 0x%x, type: %u\n",
 			    ind_msg->mem_seg[i].size, ind_msg->mem_seg[i].type);
 		plat_priv->fw_mem[i].type = ind_msg->mem_seg[i].type;
@@ -2771,6 +2808,7 @@ static void cnss_wlfw_request_mem_ind_cb(struct qmi_handle *qmi_wlfw,
 		if (plat_priv->fw_mem[i].type == CNSS_MEM_CAL_V01)
 			plat_priv->cal_mem = &plat_priv->fw_mem[i];
 	}
+	plat_priv->fw_mem_seg_len = ind_msg->mem_seg_len;
 
 	cnss_driver_event_post(plat_priv, CNSS_DRIVER_EVENT_REQUEST_MEM,
 			       0, NULL);
