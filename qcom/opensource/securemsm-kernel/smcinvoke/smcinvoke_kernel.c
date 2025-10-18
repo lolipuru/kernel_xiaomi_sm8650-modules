@@ -86,7 +86,7 @@ static void tzobject_delete(struct kref *refs)
 	kfree(me);
 }
 
-int getObjectFromHandle(int handle, struct Object *obj)
+static int getObjectFromHandle(int handle, struct Object *obj)
 {
 	int ret = 0;
 
@@ -105,7 +105,7 @@ int getObjectFromHandle(int handle, struct Object *obj)
 	return ret;
 }
 
-int getHandleFromObject(struct Object obj, int *handle)
+static int getHandleFromObject(struct Object obj, int *handle)
 {
 	int ret = 0;
 
@@ -325,6 +325,7 @@ int32_t get_client_env_object(struct Object *clientEnvObj)
 	Object_release(rootObj);
 	return ret;
 }
+
 EXPORT_SYMBOL(get_client_env_object);
 
 #if IS_ENABLED(CONFIG_QSEECOM_COMPAT)

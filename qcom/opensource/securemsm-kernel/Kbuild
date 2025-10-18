@@ -24,7 +24,7 @@ include $(SSG_MODULE_ROOT)/config/sec-kernel_defconfig_smcinvoke.conf
 LINUXINCLUDE += -include $(SSG_MODULE_ROOT)/config/sec-kernel_defconfig_smcinvoke.h
 
 obj-$(CONFIG_QCOM_SMCINVOKE) += smcinvoke_dlkm.o
-smcinvoke_dlkm-objs := smcinvoke/smcinvoke_kernel.o smcinvoke/smcinvoke.o
+smcinvoke_dlkm-objs := smcinvoke/smcinvoke_kernel.o smcinvoke/smcinvoke.o smcinvoke/smci_kernel.o
 
 obj-$(CONFIG_QTI_TZ_LOG) += tz_log_dlkm.o
 tz_log_dlkm-objs := tz_log/tz_log.o
