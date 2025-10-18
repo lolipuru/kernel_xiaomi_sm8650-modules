@@ -1,5 +1,5 @@
 /* Copyright (c) 2018-2021, The Linux Foundation. All rights reserved.
- * Copyright (c) 2022-2023 Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) 2022-2023, 2025 Qualcomm Innovation Center, Inc. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -378,6 +378,25 @@ TRACE_EVENT(dfc_set_powersave_mode,
 	TP_printk("set powersave mode to %s",
 		__entry->enable ? "enable" : "disable")
 );
+
+TRACE_EVENT(dfc_pm_event,
+
+	TP_PROTO(int event),
+
+	TP_ARGS(event),
+
+	TP_STRUCT__entry(
+		__field(int, event)
+	),
+
+	TP_fast_assign(
+		__entry->event = event;
+	),
+
+	TP_printk("Got PM event from notifier %d",
+		  __entry->event)
+);
+
 
 #endif /* _TRACE_DFC_H */
 
