@@ -1,0 +1,37 @@
+# SPDX-License-Identifier: GPL-2.0-only
+
+KDIR := $(TOP)/kernel_platform/common
+
+
+LINUX_INC +=	-Iinclude/linux \
+		-Iinclude/linux/drm
+
+LINUX_INC +=	-I$(TOUCHFEATURE_ROOT) \
+
+CDEFINES += -Wall\
+	-Werror\
+	-D__linux__
+
+KBUILD_CPPFLAGS += $(CDEFINES)
+
+ccflags-y += $(LINUX_INC)
+
+ifeq ($(call cc-option-yn, -Wmaybe-uninitialized),y)
+EXTRA_CFLAGS += -Wmaybe-uninitialized
+endif
+
+KBUILD_EXTRA_SYMBOLS +=$(OUT)/obj/vendor/qcom/opensource/display-drivers/msm/Module.symvers
+
+ifeq ($(call cc-option-yn, -Wheader-guard),y)
+EXTRA_CFLAGS += -Wheader-guard
+endif
+
+
+######### CONFIG_DRM_MSM ########
+obj-m += xiaomi_touch.o
+
+xiaomi_touch-m := xiaomi_touch_knock_data.o xiaomi_touch_core.o xiaomi_touch_proc.o xiaomi_touch_operations.o xiaomi_touch_sys.o xiaomi_touch_mode.o xiaomi_touch_evdev.o xiaomi_touch_device.o
+
+
+CDEFINES += -DBUILD_TIMESTAMP=\"$(shell date -u +'%Y-%m-%dT%H:%M:%SZ')\"
+
