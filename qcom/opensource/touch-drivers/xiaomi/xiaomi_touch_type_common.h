@@ -3,7 +3,7 @@
 
 #include <linux/types.h>
 
-#define CMD_DATA_BUF_SIZE	256
+#define CMD_DATA_BUF_SIZE	128
 #define THP_CMD_BASE		1000
 #define THP_IC_CMD_BASE		3000
 #define TOUCH_MOTION_BASE	200

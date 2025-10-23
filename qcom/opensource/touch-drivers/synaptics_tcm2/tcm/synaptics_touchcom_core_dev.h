@@ -41,7 +41,7 @@
 #define _SYNAPTICS_TOUCHCOM_CORE_DEV_H_
 
 
-#include "syna_tcm2_platform.h"
+#include "../syna_tcm2_platform.h"
 
 
 #define SYNA_TCM_CORE_LIB_VERSION 0x0126

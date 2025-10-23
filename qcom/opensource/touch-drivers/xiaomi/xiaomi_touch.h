@@ -15,7 +15,7 @@
 
 #define BTN_INFO 0x152
 
-#define LOG_TAG					"MI_TP"
+#define LOG_TAG					"[MI_TP"
 #define COMMON_DATA_BUF_SIZE    10
 #define MAX_TOUCH_PANEL_COUNT   2
 #define MAX_TOUCH_ID 10

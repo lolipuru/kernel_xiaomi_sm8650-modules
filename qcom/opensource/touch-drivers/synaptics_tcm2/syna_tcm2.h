@@ -41,8 +41,8 @@
 #define _SYNAPTICS_TCM2_DRIVER_H_
 
 #include "syna_tcm2_platform.h"
-#include "synaptics_touchcom_core_dev.h"
-#include "synaptics_touchcom_func_touch.h"
+#include "tcm/synaptics_touchcom_core_dev.h"
+#include "tcm/synaptics_touchcom_func_touch.h"
 #include "syna_xiaomi_driver.h"
 #include <linux/pm_qos.h>
 

@@ -642,9 +642,6 @@ static int syna_spi_read(struct syna_hw_interface *hw_if,
 	struct spi_device *spi = hw_if->pdev;
 	struct syna_hw_bus_data *bus = &hw_if->bdata_io;
 	struct syna_tcm *tcm = NULL;
-#if defined(TOUCH_PLATFORM_XRING)
-	unsigned int bak_rd_len = rd_len;
-#endif
 
 	if (!spi) {
 		LOGE("Invalid bus io device\n");
@@ -687,15 +684,6 @@ static int syna_spi_read(struct syna_hw_interface *hw_if,
 		goto exit;
 	}
 
-#if defined(TOUCH_PLATFORM_XRING)
-/* NOTE:
- * Due to xring franklin 1 platform requirment,
- * 64-byte-alignment is needed to enable DMA transfer
- */
-	if (rd_len > 256 && rd_len % 64)
-		rd_len = rd_len + (64 - rd_len % 64);
-#endif
-
 	spi_message_init(&msg);
 
 	if (bus->spi_byte_delay_us == 0)
@@ -710,11 +698,7 @@ static int syna_spi_read(struct syna_hw_interface *hw_if,
 	if (bus->spi_byte_delay_us == 0) {
 		syna_pal_mem_set(tx_buf, 0xff, rd_len);
 		xfer[0].len = rd_len;
-#if defined(TOUCH_PLATFORM_XRING)
-		xfer[0].tx_buf = NULL;
-#else
 		xfer[0].tx_buf = tx_buf;
-#endif
 		xfer[0].rx_buf = rx_buf;
 #ifndef SPI_NO_DELAY_USEC
 		if (bus->spi_block_delay_us)
@@ -741,9 +725,6 @@ static int syna_spi_read(struct syna_hw_interface *hw_if,
 		LOGE("Failed to complete SPI transfer, error = %d\n", retval);
 		goto exit;
 	}
-#if defined(TOUCH_PLATFORM_XRING)
-	rd_len = bak_rd_len;
-#endif
 	retval = syna_pal_mem_cpy(rd_data, rd_len, rx_buf, rd_len, rd_len);
 	if (retval < 0) {
 		LOGE("Fail to copy rx_buf to rd_data\n");

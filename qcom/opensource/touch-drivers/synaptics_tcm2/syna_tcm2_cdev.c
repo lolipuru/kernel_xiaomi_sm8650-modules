@@ -39,8 +39,8 @@
 
 #include "syna_tcm2.h"
 #include "syna_tcm2_cdev.h"
-#include "synaptics_touchcom_core_dev.h"
-#include "synaptics_touchcom_func_base.h"
+#include "tcm/synaptics_touchcom_core_dev.h"
+#include "tcm/synaptics_touchcom_func_base.h"
 
 #if (KERNEL_VERSION(5, 9, 0) <= LINUX_VERSION_CODE) || \
 	defined(HAVE_UNLOCKED_IOCTL)
@@ -2079,7 +2079,7 @@ exit:
  * @return
  *    the string of devtmpfs
  */
-static char *syna_cdev_devnode(const struct device *dev, umode_t *mode)
+static char *syna_cdev_devnode(struct device *dev, umode_t *mode)
 {
 	if (!mode)
 		return NULL;
@@ -2152,7 +2152,7 @@ int syna_cdev_create(struct syna_tcm *tcm,
 		goto err_add_chardev;
 	}
 
-	device_class = class_create(PLATFORM_DRIVER_NAME);
+	device_class = class_create(THIS_MODULE, PLATFORM_DRIVER_NAME);
 	if (IS_ERR(device_class)) {
 		LOGE("Fail to create device class\n");
 		retval = PTR_ERR(device_class);

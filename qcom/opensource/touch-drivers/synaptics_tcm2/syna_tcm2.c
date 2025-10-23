@@ -40,14 +40,14 @@
 #include "syna_tcm2.h"
 #include "syna_tcm2_cdev.h"
 #include "syna_tcm2_platform.h"
-#include "synaptics_touchcom_core_dev.h"
-#include "synaptics_touchcom_func_base.h"
-#include "synaptics_touchcom_func_touch.h"
+#include "tcm/synaptics_touchcom_core_dev.h"
+#include "tcm/synaptics_touchcom_func_base.h"
+#include "tcm/synaptics_touchcom_func_touch.h"
 #ifdef STARTUP_REFLASH
 #ifdef HAS_ROMBOOT_REFLASH_FEATURE
-#include "synaptics_touchcom_func_romboot.h"
+#include "tcm/synaptics_touchcom_func_romboot.h"
 #else
-#include "synaptics_touchcom_func_reflash.h"
+#include "tcm/synaptics_touchcom_func_reflash.h"
 #endif
 #endif
 #include "../xiaomi/xiaomi_touch.h"

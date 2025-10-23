@@ -9,15 +9,7 @@
 #include <linux/of.h>
 #include <linux/stdarg.h>
 #if defined(CONFIG_DRM)
-#if defined(TOUCH_PLATFORM_XRING)
-#include <linux/err.h>
-#include <linux/errno.h>
-#include <linux/types.h>
-#include <drm/drm_panel.h>
-#include <soc/xring/display/panel_event_notifier.h>
-#else
 #include <linux/soc/qcom/panel_event_notifier.h>
-#endif
 #endif
 #include <linux/power_supply.h>
 #include <net/sock.h>
@@ -633,48 +625,6 @@ static void xiaomi_touch_suspend_work(struct work_struct *work)
 
 }
 
-#if defined(TOUCH_PLATFORM_XRING)
-static void xiaomi_drm_panel_notifier_callback(enum xring_panel_event_tag tag,
-		struct xring_panel_event_notification *notification, void *client_data)
-{
-	long touch_id = (long)client_data;
-	if (!notification || IS_TOUCH_ID_INVALID(touch_id)) {
-		LOG_ERROR("Invalid data. notification %p, touch_id %ld", notification, touch_id);
-		return;
-	}
-	if (notification->type <= DRM_PANEL_EVENT_MAX)
-		LOG_INFO("Notification type:%d, early_trigger:%d", notification->type, notification->data.early_trigger);
-	switch (notification->type) {
-	case DRM_PANEL_EVENT_UNBLANK:
-	/*NOTE: uncomment after display adapted
-		if (notification->data.early_trigger == 1) {
-			LOG_INFO("FB_BLANK_UNBLAN");
-			schedule_resume_suspend_work((s8)touch_id, true);
-		}
-	*/
-			LOG_INFO("FB_BLANK_UNBLAN");
-			schedule_resume_suspend_work((s8)touch_id, true);
-		break;
-	case DRM_PANEL_EVENT_BLANK:
-	/*NOTE: uncomment after display adapted
-		if (notification->data.early_trigger == 0) {
-			LOG_INFO("FB_BLANK LP");
-			schedule_resume_suspend_work((s8)touch_id, false);
-		}
-	*/
-			LOG_INFO("FB_BLANK LP");
-			schedule_resume_suspend_work((s8)touch_id, false);
-		break;
-	case DRM_PANEL_EVENT_FPS_CHANGE:
-		break;
-	default:
-		LOG_ERROR("notification serviced :%d", notification->type);
-		break;
-	}
-	if (notification->type < 4)
-		LOG_INFO("notification complete");
-}
-#else
 static void xiaomi_drm_panel_notifier_callback(enum panel_event_notifier_tag tag,
 		struct panel_event_notification *notification, void *client_data)
 {
@@ -709,7 +659,6 @@ static void xiaomi_drm_panel_notifier_callback(enum panel_event_notifier_tag tag
 	if (notification->notif_type < 4)
 		LOG_INFO("notification complete");
 }
-#endif
 
 static void xiaomi_register_panel_notifier_work(struct work_struct *work)
 {
@@ -720,11 +669,7 @@ static void xiaomi_register_panel_notifier_work(struct work_struct *work)
 	int count = 0;
 	int i = 0;
 	long touch_id = -1;
-#if defined(TOUCH_PLATFORM_XRING)
-	char *property_name = "dsi-panel";
-#else
 	char *property_name = "panel";
-#endif
 
 	LOG_INFO("Start register panel notifier");
 	count = of_count_phandle_with_args(xiaomi_touch_data->dev->of_node, property_name, NULL);
@@ -761,16 +706,10 @@ static void xiaomi_register_panel_notifier_work(struct work_struct *work)
 		return;
 	}
 
-#if defined(TOUCH_PLATFORM_XRING)
-	xiaomi_touch_data->notifier_cookie = xring_panel_event_notifier_register(xiaomi_touch_data->panel_event_notifier_tag,
-		xiaomi_touch_data->panel_event_notifier_client, node,
-		&xiaomi_drm_panel_notifier_callback, (void *)touch_id);
-#else
 #if IS_ENABLED(CONFIG_QCOM_PANEL_EVENT_NOTIFIER)
 	xiaomi_touch_data->notifier_cookie = panel_event_notifier_register(xiaomi_touch_data->panel_event_notifier_tag,
 		xiaomi_touch_data->panel_event_notifier_client, panel,
 		&xiaomi_drm_panel_notifier_callback, (void *)touch_id);
-#endif
 #endif
 	of_node_put(node);
 	if (IS_ERR(xiaomi_touch_data->notifier_cookie)) {
@@ -836,14 +775,9 @@ void xiaomi_unregister_panel_notifier(struct device *dev, s8 touch_id)
 	cancel_work_sync(&xiaomi_touch_data->suspend_work);
 	cancel_work_sync(&xiaomi_touch_data->resume_work);
 
-#if defined(TOUCH_PLATFORM_XRING)
-	if (!IS_ERR(xiaomi_touch_data->notifier_cookie))
-		xring_panel_event_notifier_unregister(xiaomi_touch_data->notifier_cookie);
-#else
 #if IS_ENABLED(CONFIG_QCOM_PANEL_EVENT_NOTIFIER)
 	if (!IS_ERR(xiaomi_touch_data->notifier_cookie))
 		panel_event_notifier_unregister(xiaomi_touch_data->notifier_cookie);
-#endif
 #endif
 #endif
 }
