@@ -136,6 +136,31 @@ CREATE_ATTR(fod_press_status, {
 	{
 		return count;
 	});
+CREATE_ATTR(fod_longpress_gesture_enabled, {
+		return snprintf(buf, PAGE_SIZE, "%d\n", driver_get_touch_mode(TOUCH_ID, DATA_MODE_10));
+	},
+	{
+		int input;
+
+		if (sscanf(buf, "%d", &input) < 0)
+			return -EINVAL;
+
+		int new_modes[DATA_MODE_33] = {0};
+		new_modes[DATA_MODE_10] = input;
+		driver_update_touch_mode(TOUCH_ID, new_modes, (1L << DATA_MODE_10));
+
+		/* Manually set finger up to clear touch event */
+		if (!input) {
+			xiaomi_touch_driver_param_t *xiaomi_touch_driver_param = get_xiaomi_touch_driver_param(TOUCH_ID);
+			if (xiaomi_touch_driver_param && xiaomi_touch_driver_param->hardware_operation.ic_set_fod_value) {
+				s32 info[FOD_VALUE_LEN];
+				info[0] = 0x81; // GESTURE_TOUCH_AND_HOLD_UP_EVENT
+				xiaomi_touch_driver_param->hardware_operation.ic_set_fod_value(info, FOD_VALUE_LEN);
+			}
+		}
+
+		return count;
+	});
 #endif
 
 CREATE_ATTR(panel_vendor, {
@@ -525,6 +550,7 @@ CREATE_ATTR(touch_log_level, {
 static struct attribute *touch_attr_group[] = {
 #ifdef TOUCH_FOD_SUPPORT
 	&dev_attr_fod_press_status.attr,
+	&dev_attr_fod_longpress_gesture_enabled.attr,
 	&dev_attr_fod_test.attr,
 #endif
 	&dev_attr_panel_vendor.attr,
