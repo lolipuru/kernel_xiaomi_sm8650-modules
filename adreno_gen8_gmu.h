@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
  * Copyright (c) 2021, The Linux Foundation. All rights reserved.
- * Copyright (c) 2023-2024, Qualcomm Innovation Center, Inc. All rights reserved.
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 
 #ifndef __ADRENO_GEN8_GMU_H
@@ -77,6 +77,8 @@ struct gen8_gmu_device {
 	/** @global_entries: To keep track of number of gmu buffers */
 	u32 global_entries;
 	struct gmu_vma_entry *vma;
+	/** @num_vmas: Number of entries in the @vma array */
+	u32 num_vmas;
 	u32 log_wptr_retention;
 	/** @cm3_fault: whether gmu received a cm3 fault interrupt */
 	atomic_t cm3_fault;
