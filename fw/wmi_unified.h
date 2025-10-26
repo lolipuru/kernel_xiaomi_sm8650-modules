@@ -115,6 +115,8 @@ extern "C" {
         }
 #endif
 
+#define WMI_MAX_NUM_EXT_TLVS 50
+
 #define ATH_MAC_LEN             6               /**< length of MAC in bytes */
 #define WMI_EVENT_STATUS_SUCCESS 0 /* Success return status to host */
 #define WMI_EVENT_STATUS_FAILURE 1 /* Failure return status to host */
@@ -734,6 +736,9 @@ typedef enum {
 
     WMI_VDEV_GET_TPC_IE_POWER_CMDID,
 
+    /** data traffic monitoring */
+    WMI_VDEV_TRAFFIC_MONITORING_CMDID,
+
     /* peer specific commands */
 
     /** create a peer */
@@ -866,6 +871,9 @@ typedef enum {
 
     /** Peer NPCA CAP Command **/
     WMI_PEER_NPCA_CAP_CMDID,
+
+    /* WMI_PEER_ASSOC_V2_CMDID: extended alternative for WMI_PEER_ASSOC_CMDID */
+    WMI_PEER_ASSOC_V2_CMDID,
 
     /* beacon/management specific commands */
 
@@ -1759,6 +1767,8 @@ typedef enum {
     WMI_ENERGY_MGMT_PUO_CONFIG_CMDID,
     /** WMI cmd used to control ECO mode config */
     WMI_ENERGY_MGMT_ECO_MODE_CONFIG_CMDID,
+    /** WMI cmd used to control DPS Assisting AP role config */
+    WMI_ENERGY_MGMT_DPS_ASSISTING_ROLE_CONFIG_CMDID,
 } WMI_CMD_ID;
 
 typedef enum {
@@ -3044,6 +3054,9 @@ typedef struct _wmi_ppe_threshold {
 
 #define WMI_MAX_EHTCAP_MAC_SIZE  2
 #define WMI_MAX_EHTCAP_PHY_SIZE  3
+
+#define WMI_MAX_UHRCAP_MAC_SIZE  4
+#define WMI_MAX_UHRCAP_PHY_SIZE  3
 
 /*
  * 0 – index indicated EHT-MCS map for 20Mhz only sta (4 bytes valid)
@@ -10140,6 +10153,9 @@ typedef enum {
 
     /* configure pdev coex stats period (millisecond units) */
     WMI_PDEV_PARAM_COEX_STATS_UPDATE_PERIOD,
+
+    /* To enable/disable XPAN SAP + STA power optimization */
+    WMI_PDEV_PARAM_XPAN_STA_PWRSAVE_ENABLE,
 } WMI_PDEV_PARAM;
 
 #define WMI_PDEV_ONLY_BSR_TRIG_IS_ENABLED(trig_type) WMI_GET_BITS(trig_type, 0, 1)
@@ -15737,6 +15753,10 @@ typedef struct {
 #define WMI_VDEV_STATS_FLAGS_IS_LINK_ACTIVE_MASK \
     (1 << WMI_VDEV_STATS_FLAGS_IS_LINK_ACTIVE_BIT)
 
+#define WMI_VDEV_STATS_FLAGS_CHANNEL_STATS_PRESENT_BIT 2
+#define WMI_VDEV_STATS_FLAGS_CHANNEL_STATS_PRESENT_MASK \
+    (1 << WMI_VDEV_STATS_FLAGS_CHANNEL_STATS_PRESENT_BIT)
+
 /**
  *  vdev extension statistics
  */
@@ -15759,10 +15779,34 @@ typedef struct {
      *     1: the "is link active" flag is valid
      * bit 1: WMI_VDEV_STATS_FLAGS_IS_LINK_ACTIVE,
      *     1:link_active; 0:link_inactive
+     * bit 2: WMI_VDEV_STATS_FLAGS_CHANNEL_STATS_PRESENT,
+     *     0: new stats fields are not present.
+     *     1: new rx/tx/on/cca time stats fields present;
      * Refer to WMI_VDEV_STATS_FLAGS_ defs.
      */
     A_UINT32 flags;
     A_INT32 vdev_tx_power; /* dBm units */
+    /** rx_time:
+     * How many msecs vdev is in active receive on channel
+     * (32 bits number accruing over time)
+     */
+    A_UINT32 rx_time;
+    /** tx_time:
+     * How many msecs vdev is transmitting on channel
+     * (32 bits number accruing over time)
+     */
+    A_UINT32 tx_time;
+    /** on_time:
+     * How many msecs vdev is awake on channel
+     * (32 bits number accruing over time)
+     */
+    A_UINT32 on_time;
+    /** cca_time:
+     * How many msecs vdev is CCA busy on channel
+     * (32 bits number accruing over time)
+     * Includes rx_time but not tx_time.
+     */
+    A_UINT32 cca_time;
 } wmi_vdev_extd_stats;
 
 /**
@@ -22410,13 +22454,23 @@ typedef struct {
 #define WMI_ASSOC_FLAG_FLUSH_PEER_DATA_GET(assoc_flags) WMI_GET_BITS(assoc_flags, 0, 1)
 #define WMI_ASSOC_FLAG_FLUSH_PEER_DATA_SET(assoc_flags, value) WMI_GET_BITS(assoc_flags, 0, 1, value)
 
+enum wmi_peer_new_assoc {
+    WMI_PEER_REASSOC = 0,      /* Peer Reassoc */
+    WMI_PEER_ASSOC = 1,        /* Peer Assoc */
+    WMI_PEER_CREATE_ASSOC = 2, /* Peer Create and Peer Assoc in single command,
+                                * currently used for SMD case */
+
+    /* Host <-> Target Peer New Assoc is assigned up to 127 */
+    WMI_PEER_NEW_ASSOC_MAX = 127
+};
+
 typedef struct {
     A_UINT32 tlv_header; /** TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_peer_assoc_complete_cmd_fixed_param */
     /** peer MAC address */
     wmi_mac_addr peer_macaddr;
     /** VDEV id */
     A_UINT32 vdev_id;
-    /** assoc = 1 reassoc = 0 */
+    /* enum wmi_peer_new_assoc: create_assoc = 2, assoc = 1, reassoc = 0 */
     A_UINT32 peer_new_assoc;
     /** peer associd (16 bits) */
     A_UINT32 peer_associd;
@@ -22550,6 +22604,23 @@ typedef struct {
      */
     A_UINT32 max_downlink_nss;
 
+    /** Peer create flags */
+    union {
+        struct {
+            A_UINT32 hw_peer_id_valid : 1,
+                     peer_type_valid  : 1,
+                     reserved         :30;
+        };
+        A_UINT32 flags;
+    };
+    /** Global sw peer id, valid only if non-zero */
+    A_UINT32 sw_peer_id;
+    /** Global hardware id, valid only if hw_peer_id_valid is set */
+    A_UINT32 hw_peer_id;
+    /** peer type: see enum values above */
+    A_UINT32 peer_type;
+
+
 /* Following this struct are the TLV's:
  *     A_UINT8 peer_legacy_rates[];
  *     A_UINT8 peer_ht_rates[];
@@ -22563,10 +22634,22 @@ typedef struct {
  *     wmi_peer_assoc_tid_to_link_map[] <-- tid to link_map info
  *     wmi_peer_assoc_operating_mode_params <-- operating mode param that
  *         host sends to AP in peer assoc req, optional TLV
+ * --- the below only apply to WMI_PEER_ASSOC_V2_CMD, not WMI_PEER_ASSOC_CMDID
  *     wmi_peer_npca_cap_params peer_npca_cap_params[]; <-- peer NPCA
  *         capabilities, host sends NPCA peer capabilities as an optional TLV
+ *     wmi_peer_create_mlo_params mlo_params[]; <-- MLO flags on peer_create
+ *         Optional TLV, only present for MLO peers.
+ *         If the peer is non-MLO, the array length should be 0.
+ *         Only mlo_enable flag required by MCC to decide MAC address
+ *         to be used.
  */
 } wmi_peer_assoc_complete_cmd_fixed_param;
+
+#define WMI_PEER_ASSOC_COMPLETE_CMD_FLAG_HW_PEER_ID_VALID_GET(flags) WMI_GET_BITS(flags, 0, 1)
+#define WMI_PEER_ASSOC_COMPLETE_CMD_FLAG_HW_PEER_ID_VALID_SET(flags, value) WMI_GET_BITS(flags, 0, 1, value)
+
+#define WMI_PEER_ASSOC_COMPLETE_CMD_FLAG_PEER_TYPE_VALID_GET(flags) WMI_GET_BITS(flags, 1, 1)
+#define WMI_PEER_ASSOC_COMPLETE_CMD_FLAG_PEER_TYPE_VALID_SET(flags, value) WMI_GET_BITS(flags, 1, 1, value)
 
 typedef struct {
     A_UINT32 tlv_header; /* TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_peer_npca_cap_params*/
@@ -30691,6 +30774,9 @@ enum wmi_sar_feature_state_flags {
     WMI_SAR_FEATURE_ON_USER_DEFINED,
     WMI_SAR_FEATURE_ON_SAR_V2_0,
     WMI_SAR_FEATURE_ON_SAR_V3,
+        WMI_SAR_FEATURE_ON_SAR_V3_0 = WMI_SAR_FEATURE_ON_SAR_V3,
+    WMI_SAR_FEATURE_ON_SAR_V4_0,
+    WMI_SAR_FEATURE_ON_SAR_V5_0,
 };
 
 typedef struct {
@@ -38217,6 +38303,386 @@ typedef struct {
     };
 } WMI_MAC_PHY_CAPABILITIES_EXT;
 
+
+typedef struct {
+    A_UINT32 tlv_header; /* TLV tag and len; tag equals WMITLV_TAG_STRUC_WMI_MAC_PHY_CAPABILITIES_EXT2 */
+
+    /* hw_mode_id:
+     * Identify a particular set of HW characteristics, as specified by
+     * the subsequent fields.
+     * WMI_MAC_PHY_CAPABILITIES element must be mapped to its parent
+     * WMI_HW_MODE_CAPABILITIES element using hw_mode_id.
+     * No particular ordering of WMI_MAC_PHY_CAPABILITIES elements
+     * should be assumed, though in practice the elements will likely
+     * be ordered by hw_mode_id.
+     */
+    A_UINT32 hw_mode_id;
+
+    /*
+     * pdev_id starts with 1. pdev_id 1 => phy_id 0, pdev_id 2 => phy_id 1
+     * hw_link_id: Unique link id across SOCs, got as part of QMI handshake.
+     * For legacy chips which do not support MLO, these top bits will always
+     * be set to 0, so it won't impact the legacy chips which treat pdev_id
+     * as 32 bits.
+     */
+    union {
+        struct {
+            A_UINT32 pdev_id:16,
+                     hw_link_id:16;
+        } pdev_to_link_map;
+        A_UINT32 pdev_to_link_map_word32;
+    };
+    /* phy id. Starts with 0 */
+    A_UINT32 phy_id;
+    A_UINT32 wireless_modes_ext; /* REGDMN MODE EXT, see REGDMN_MODE_ enum */
+
+    /**************************************************************************
+     * following new params are for 802.11bn, but under development
+     **************************************************************************/
+    /* UHR capability mac info field of 802.11bn */
+    A_UINT32 uhr_cap_mac_info_2G[WMI_MAX_UHRCAP_MAC_SIZE];
+    A_UINT32 uhr_cap_mac_info_5G[WMI_MAX_UHRCAP_MAC_SIZE];
+
+    /* UHR capability phy field of 802.11bn, WMI_UHR_CAP defines */
+    A_UINT32 uhr_cap_phy_info_2G[WMI_MAX_UHRCAP_PHY_SIZE];
+    A_UINT32 uhr_cap_phy_info_5G[WMI_MAX_UHRCAP_PHY_SIZE];
+
+    union {
+        struct {
+            A_UINT32 npca_enabled:1,            /* bit 0 */
+                     npca_min_dur_threshold:4,  /* bits 4:1 */
+                     npca_switch_delay:6,       /* bits 10:5 */
+                     npca_switch_back_delay:6,  /* bits 16:11 */
+                     npca_qsrc:2,               /* bits 18:17 */
+                     npca_moplen:1,             /* bit 19 */
+                     reserved: 12;
+        };
+        A_UINT32 npca_capability;
+    };
+} WMI_MAC_PHY_CAPABILITIES_EXT2;
+
+#define WMI_CAP_EXT2_PDEV_TO_LINK_MAP_PDEV_ID_GET(pdev_to_link_map_word32) \
+    WMI_GET_BITS(pdev_to_link_map_word32, 0, 16)
+#define WMI_CAP_EXT2_PDEV_TO_LINK_MAP_PDEV_ID_SET(pdev_to_link_map_word32, val) \
+    WMI_SET_BITS(pdev_to_link_map_word32, 0, 16, val)
+
+#define WMI_CAP_EXT2_PDEV_TO_LINK_MAP_HW_LINK_ID_GET(pdev_to_link_map_word32) \
+    WMI_GET_BITS(pdev_to_link_map_word32, 16, 16)
+#define WMI_CAP_EXT2_PDEV_TO_LINK_MAP_HW_LINK_ID_SET(pdev_to_link_map_word32, val) \
+    WMI_SET_BITS(pdev_to_link_map_word32, 16, 16, val)
+
+/****** 11BN UHR PHY Capabilities Information field ******/ /* { */
+
+/* Bit 0: Max Nss Rx for sounding NDP (≤ 80 MHz) */
+#define WMI_UHRCAP_PHY_MAX_NSS_RX_80_GET(uhr_cap_phy) \
+    WMI_GET_BITS(uhr_cap_phy[0], 0, 1)
+#define WMI_UHRCAP_PHY_MAX_NSS_RX_80_SET(uhr_cap_phy, value) \
+    WMI_SET_BITS(uhr_cap_phy[0], 0, 1, value)
+
+/* Bit 1: Max Nss,total Rx for DL MU-MIMO (≤ 80 MHz) */
+#define WMI_UHRCAP_PHY_MAX_NSS_DL_MU_80_GET(uhr_cap_phy) \
+    WMI_GET_BITS(uhr_cap_phy[0], 1, 1)
+#define WMI_UHRCAP_PHY_MAX_NSS_DL_MU_80_SET(uhr_cap_phy, value) \
+    WMI_SET_BITS(uhr_cap_phy[0], 1, 1, value)
+
+/* Bit 2: Max Nss Rx for sounding NDP (≤ 160 MHz) */
+#define WMI_UHRCAP_PHY_MAX_NSS_RX_160_GET(uhr_cap_phy) \
+    WMI_GET_BITS(uhr_cap_phy[0], 2, 1)
+#define WMI_UHRCAP_PHY_MAX_NSS_RX_160_SET(uhr_cap_phy, value) \
+    WMI_SET_BITS(uhr_cap_phy[0], 2, 1, value)
+
+/* Bit 3: Max Nss,total Rx for DL MU-MIMO (≤ 160 MHz) */
+#define WMI_UHRCAP_PHY_MAX_NSS_DL_MU_160_GET(uhr_cap_phy) \
+    WMI_GET_BITS(uhr_cap_phy[0], 3, 1)
+#define WMI_UHRCAP_PHY_MAX_NSS_DL_MU_160_SET(uhr_cap_phy, value) \
+    WMI_SET_BITS(uhr_cap_phy[0], 3, 1, value)
+
+/* Bit 4: Max Nss Rx for sounding NDP (≤ 320 MHz) */
+#define WMI_UHRCAP_PHY_MAX_NSS_RX_320_GET(uhr_cap_phy) \
+    WMI_GET_BITS(uhr_cap_phy[0], 4, 1)
+#define WMI_UHRCAP_PHY_MAX_NSS_RX_320_SET(uhr_cap_phy, value) \
+    WMI_SET_BITS(uhr_cap_phy[0], 4, 1, value)
+
+/* Bit 5: Max Nss,total Rx for DL MU-MIMO (≤ 320 MHz) */
+#define WMI_UHRCAP_PHY_MAX_NSS_DL_MU_320_GET(uhr_cap_phy) \
+    WMI_GET_BITS(uhr_cap_phy[0], 5, 1)
+#define WMI_UHRCAP_PHY_MAX_NSS_DL_MU_320_SET(uhr_cap_phy, value) \
+    WMI_SET_BITS(uhr_cap_phy[0], 5, 1, value)
+
+/* Bit 6: ELR Rx Support */
+#define WMI_UHRCAP_PHY_ELR_RX_GET(uhr_cap_phy) \
+    WMI_GET_BITS(uhr_cap_phy[0], 6, 1)
+#define WMI_UHRCAP_PHY_ELR_RX_SET(uhr_cap_phy, value) \
+    WMI_SET_BITS(uhr_cap_phy[0], 6, 1, value)
+
+/* Bit 7: ELR Tx Support */
+#define WMI_UHRCAP_PHY_ELR_TX_GET(uhr_cap_phy) \
+    WMI_GET_BITS(uhr_cap_phy[0], 7, 1)
+#define WMI_UHRCAP_PHY_ELR_TX_SET(uhr_cap_phy, value) \
+    WMI_SET_BITS(uhr_cap_phy[0], 7, 1, value)
+
+/****** End of 11BN UHR PHY Capabilities Information field ******/ /* } */
+
+/****** 11BN UHR MAC Capabilities Information field ******/ /* { */
+
+/* Bit 0: DPS Support */
+#define WMI_UHRCAP_MAC_DPS_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[0], 0, 1)
+#define WMI_UHRCAP_MAC_DPS_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[0], 0, 1, value)
+
+/* Bit 1: DPS Assisting support */
+#define WMI_UHRCAP_MAC_DPS_ASSIS_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[0], 1, 1)
+#define WMI_UHRCAP_MAC_DPS_ASSIS_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[0], 1, 1, value)
+
+/* Bit 2: DPS AP Static HCM Support */
+#define WMI_UHRCAP_MAC_DPS_AP_HCM_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[0], 2, 1)
+#define WMI_UHRCAP_MAC_DPS_AP_HCM_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[0], 2, 1, value)
+
+/* Bit 3: Multi Link Power Management support */
+#define WMI_UHRCAP_MAC_MULTI_LINK_PM_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[0], 3, 1)
+#define WMI_UHRCAP_MAC_MULTI_LINK_PM_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[0], 3, 1, value)
+
+/* Bit 4: NPCA support */
+#define WMI_UHRCAP_MAC_NPCA_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[0], 4, 1)
+#define WMI_UHRCAP_MAC_NPCA_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[0], 4, 1, value)
+
+/* Bit 5: Enhanced BSR support */
+#define WMI_UHRCAP_MAC_BSR_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[0], 5, 1)
+#define WMI_UHRCAP_MAC_BSR_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[0], 5, 1, value)
+
+/* Bit 6: Additional Mapped TID Support */
+#define WMI_UHRCAP_MAC_ADDITIONAL_TID_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[0], 6, 1)
+#define WMI_UHRCAP_MAC_ADDITIONAL_TID_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[0], 6, 1, value)
+
+/* Bit 7: EOTSP Support */
+#define WMI_UHRCAP_MAC_EOTSP_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[0], 7, 1)
+#define WMI_UHRCAP_MAC_EOTSP_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[0], 7, 1, value)
+
+/* Bit 8: DSO Support */
+#define WMI_UHRCAP_MAC_DSO_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[0], 8, 1)
+#define WMI_UHRCAP_MAC_DSO_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[0], 8, 1, value)
+
+/* Bit 9: P-EDCA Support */
+#define WMI_UHRCAP_MAC_P_EDCA_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[0], 9, 1)
+#define WMI_UHRCAP_MAC_P_EDCA_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[0], 9, 1, value)
+
+/* Bit 10: DBE Support */
+#define WMI_UHRCAP_MAC_DBE_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[0], 10, 1)
+#define WMI_UHRCAP_MAC_DBE_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[0], 10, 1, value)
+
+/* Bit 11: UL LLI Support */
+#define WMI_UHRCAP_MAC_UL_LLI_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[0], 11, 1)
+#define WMI_UHRCAP_MAC_UL_LLI_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[0], 11, 1, value)
+
+/* Bit 12: Peer-to-Peer LLI Support */
+#define WMI_UHRCAP_MAC_PEER_LLI_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[0], 12, 1)
+#define WMI_UHRCAP_MAC_PEER_LLI_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[0], 12, 1, value)
+
+/* Bit 13: PUO Support */
+#define WMI_UHRCAP_MAC_PUO_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[0], 13, 1)
+#define WMI_UHRCAP_MAC_PUO_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[0], 13, 1, value)
+
+/* Bit 14: AP PUO Support */
+#define WMI_UHRCAP_MAC_AP_PUO_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[0], 14, 1)
+#define WMI_UHRCAP_MAC_AP_PUO_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[0], 14, 1, value)
+
+/* Bit 15: DUO Support */
+#define WMI_UHRCAP_MAC_DUO_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[0], 15, 1)
+#define WMI_UHRCAP_MAC_DUO_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[0], 15, 1, value)
+
+/* Bit 16: OM Control UL MU Data Disable RX Support */
+#define WMI_UHRCAP_MAC_OM_CTRL_UL_MU_DISABLE_RX_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[0], 16, 1)
+#define WMI_UHRCAP_MAC_OM_CTRL_UL_MU_DISABLE_RX_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[0], 16, 1, value)
+
+/* Bit 17: AOM Support */
+#define WMI_UHRCAP_MAC_AOM_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[0], 17, 1)
+#define WMI_UHRCAP_MAC_AOM_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[0], 17, 1, value)
+
+/* Bit 18: IFCS Location Support */
+#define WMI_UHRCAP_MAC_IFCS_LOC_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[0], 18, 1)
+#define WMI_UHRCAP_MAC_IFCS_LOC_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[0], 18, 1, value)
+
+/* Bit 19: UHR TRS Support */
+#define WMI_UHRCAP_MAC_UHR_TRS_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[0], 19, 1)
+#define WMI_UHRCAP_MAC_UHR_TRS_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[0], 19, 1, value)
+
+/* Bit 20: TXSPG Support */
+#define WMI_UHRCAP_MAC_TXSPG_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[0], 20, 1)
+#define WMI_UHRCAP_MAC_TXSPG_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[0], 20, 1, value)
+
+/* Bit 21: TXOP Return Support in TXSPG */
+#define WMI_UHRCAP_MAC_TXOP_RETURN_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[0], 21, 1)
+#define WMI_UHRCAP_MAC_TXOP_RETURN_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[0], 21, 1, value)
+
+/* Bit 22 - 25: UHR Operating Mode And Parameters Update Timeout
+ *
+ * UHR Operating Mode And Parameters Update Timeout Lookup Table
+ *
+ * +------------------+-----------------------------+
+ * | Sub-field Value  | Timeout Duration            |
+ * +------------------+-----------------------------+
+ * |        0         | 0 TUs                       |
+ * |        1         | 128 µs                      |
+ * |        2         | 256 µs                      |
+ * |        3         | 512 µs                      |
+ * |        4         | 1 TU                        |
+ * |        5         | 2 TUs                       |
+ * |        6         | 4 TUs                       |
+ * |        7         | 8 TUs                       |
+ * |        8         | 16 TUs                      |
+ * |        9         | 32 TUs                      |
+ * |       10         | 64 TUs                      |
+ * |       11         | 128 TUs                     |
+ * |    12 - 15       | Reserved for future use     |
+ * +------------------+-----------------------------+
+ */
+#define WMI_UHRCAP_MAC_UHR_OPMODE_TIMEOUT_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[0], 22, 4)
+#define WMI_UHRCAP_MAC_UHR_OPMODE_TIMEOUT_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[0], 22, 4, value)
+
+/* Bit 26 - 28 : Parameter Update Adv Notification Interval */
+#define WMI_UHRCAP_MAC_PARAM_UPDATE_ADV_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[0], 26, 3)
+#define WMI_UHRCAP_MAC_PARAM_UPDATE_ADV_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[0], 26, 3, value)
+
+/* Bit 29-33: Update Indication In TIM Interval */
+#define WMI_UHRCAP_MAC_UPDATE_IND_TIM_GET(uhr_cap_mac) \
+    (WMI_GET_BITS(uhr_cap_mac[0], 29, 3) | \
+     (WMI_GET_BITS(uhr_cap_mac[1], 0, 2) << 3))
+#define WMI_UHRCAP_MAC_UPDATE_IND_TIM_SET(uhr_cap_mac, value) \
+    do { \
+        WMI_SET_BITS(uhr_cap_mac[0], 29, 3, value & 0x7) \
+        WMI_SET_BITS(uhr_cap_mac[1], 0, 2, ((value & 0x18) >> 3)) \
+    } while (0)
+
+/* Bit 34: Bounded ESS */
+#define WMI_UHRCAP_MAC_BOUNDED_ESS_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[1], 3, 1)
+#define WMI_UHRCAP_MAC_BOUNDED_ESS_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[1], 3, 1, value)
+
+/* Bit 35: BTM Assurance */
+#define WMI_UHRCAP_MAC_BTM_ASSURANCE_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[1], 4, 1)
+#define WMI_UHRCAP_MAC_BTM_ASSURANCE_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[1], 4, 1, value)
+
+/* Bits 36-63 --- Reserved */
+
+/* To be decided spec not provided clear bits */
+
+
+/* Bit 64-66: DBE Capabilities Params */
+#define WMI_UHRCAP_MAC_DBE_MAX_SUP_BW_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[2], 0, 3)
+#define WMI_UHRCAP_MAC_DBE_MAX_SUP_BW_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[2], 0, 3, value)
+
+
+/* Bit 67: EHT-MCS Map (BW=160 MHz) Present */
+#define WMI_UHRCAP_MAC_EHT_MCS_160_PRESENT_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[2], 3, 1)
+#define WMI_UHRCAP_MAC_EHT_MCS_160_PRESENT_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[2], 3, 1, value)
+
+/* Bit 68: EHT-MCS Map (BW=320 MHz) Present */
+#define WMI_UHRCAP_MAC_EHT_MCS_320_PRESENT_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[2], 4, 1)
+#define WMI_UHRCAP_MAC_EHT_MCS_320_PRESENT_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[2], 4, 1, value)
+
+/* Bit 69-71: Reserved */
+
+/* Bit 72 to 95: EHT-MCS Map (BW=160 MHz) */
+#define WMI_UHRCAP_MAC_EHT_MCS_MAP_160_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[2], 8, 24)
+#define WMI_UHRCAP_MAC_EHT_MCS_MAP_160_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[2], 8, 24, value)
+
+/* Bit 96 to 121: EHT-MCS Map (BW=320 MHz) */
+#define WMI_UHRCAP_MAC_EHT_MCS_MAP_320_GET(uhr_cap_mac) \
+    WMI_GET_BITS(uhr_cap_mac[3], 0, 24)
+#define WMI_UHRCAP_MAC_EHT_MCS_MAP_320_SET(uhr_cap_mac, value) \
+    WMI_SET_BITS(uhr_cap_mac[3], 0, 24, value)
+
+/****** End of 11BN UHR MAC Capabilities Information field ******/ /* } */
+
+#define WMI_CAP_EXT2_NPCA_ENABLED_GET(npca_capability) \
+    WMI_GET_BITS(npca_capability, 0, 1)
+#define WMI_CAP_EXT2_NPCA_ENABLED_SET(npca_capability, value) \
+    WMI_sET_BITS(npca_capability, 0, 1, value)
+
+#define WMI_CAP_EXT2_NPCA_MIN_DUR_THRESHOLD_GET(npca_capability) \
+    WMI_GET_BITS(npca_capability, 1, 4)
+#define WMI_CAP_EXT2_NPCA_MIN_DUR_THRESHOLD_SET(npca_capability, value) \
+    WMI_sET_BITS(npca_capability, 1, 5, value)
+
+#define WMI_CAP_EXT2_NPCA_SWITCH_DELAY_GET(npca_capability) \
+    WMI_GET_BITS(npca_capability, 5, 6)
+#define WMI_CAP_EXT2_NPCA_SWITCH_DELAY_SET(npca_capability, value) \
+    WMI_sET_BITS(npca_capability, 5, 6, value)
+
+#define WMI_CAP_EXT2_NPCA_SWITCH_BACK_DELAY_GET(npca_capability) \
+    WMI_GET_BITS(npca_capability, 11, 6)
+#define WMI_CAP_EXT2_NPCA_SWITCH_BACK_DELAY_SET(npca_capability, value) \
+    WMI_sET_BITS(npca_capability, 11, 6, value)
+
+#define WMI_CAP_EXT2_NPCA_QSRC_GET(npca_capability) \
+    WMI_GET_BITS(npca_capability, 17, 2)
+#define WMI_CAP_EXT2_NPCA_QSRC_SET(npca_capability, value) \
+    WMI_sET_BITS(npca_capability, 17, 2, value)
+
+#define WMI_CAP_EXT2_NPCA_MOPLEN_GET(npca_capability) \
+    WMI_GET_BITS(npca_capability, 19, 1)
+#define WMI_CAP_EXT2_NPCA_MOPLEN_SET(npca_capability, value) \
+    WMI_sET_BITS(npca_capability, 19, 1, value)
+
+
 typedef struct {
     A_UINT32 tlv_header; /* TLV tag and len; tag equals WMITLV_TAG_STRUC_WMI_HW_MODE_CAPABILITIES */
     /* hw_mode_id - identify a particular set of HW characteristics,
@@ -39659,6 +40125,8 @@ static INLINE A_UINT8 *wmi_id_to_name(A_UINT32 wmi_command)
         WMI_RETURN_STRING(WMI_ENERGY_MGMT_ECO_MODE_CONFIG_CMDID);
         WMI_RETURN_STRING(WMI_PEER_TID_RATE_CUSTOM_CMDID);
         WMI_RETURN_STRING(WMI_VDEV_GET_TPC_IE_POWER_CMDID);
+        WMI_RETURN_STRING(WMI_VDEV_TRAFFIC_MONITORING_CMDID);
+        WMI_RETURN_STRING(WMI_ENERGY_MGMT_DPS_ASSISTING_ROLE_CONFIG_CMDID);
     }
 
     return (A_UINT8 *) "Invalid WMI cmd";
@@ -51619,12 +52087,21 @@ typedef struct {
     A_UINT32 pcie_lane;
 } wmi_energy_mgmt_pcie_config_cmd_fixed_param;
 
+typedef enum {
+    WMI_PCIE_LPM_CONFIG_TYPE_UNKNOWN,
+    WMI_PCIE_LPM_CONFIG_TYPE_L0S,
+    WMI_PCIE_LPM_CONFIG_TYPE_L1,
+    WMI_PCIE_LPM_CONFIG_TYPE_L0S_L1,
+} wmi_pcie_lpm_config_type_e;
+
 typedef struct {
     /** TLV tag and len; tag equals
     * WMITLV_TAG_STRUC_wmi_energy_mgmt_pcie_lpm_cmd_fixed_param */
     A_UINT32 tlv_header;
     /** enable or disable PCIe LPM */
     A_UINT32 enable;
+    /** PCIe LPM config type */
+    A_UINT32 config_type; /* holds a wmi_pcie_lpm_config_type_e value */
 } wmi_energy_mgmt_pcie_lpm_cmd_fixed_param;
 
 typedef enum {
@@ -51712,6 +52189,30 @@ typedef struct {
      */
 } wmi_pdev_multi_vdev_ac_queue_depth_event_fixed_param;
 
+typedef struct {
+    /** TLV tag and len; tag equals
+     * WMITLV_TAG_STRUC_wmi_vdev_traffic_monitoring_cmd_fixed_param */
+    A_UINT32 tlv_header;
+    /* VDEV identifier */
+    A_UINT32 vdev_id;
+    /** TX RX byte count value, in KB units */
+    A_UINT32 data_threshold;
+    /** duration of traffic monitoring, in unit of sec */
+    A_UINT32 traffic_monitoring_time;
+} wmi_vdev_traffic_monitoring_cmd_fixed_param;
+
+typedef enum {
+    WMI_DPS_ASSISTING_ROLE_DISABLE, /* Disable - DPS: AP Assisting role */
+    WMI_DPS_ASSISTING_ROLE_ENABLE,  /* Enable  - DPS: AP Assisting role */
+} wmi_dps_assisting_role_e;
+
+typedef struct {
+    /** TLV tag and len; tag equals
+    * WMITLV_TAG_STRUC_wmi_energy_mgmt_dps_assisting_role_config_cmd_fixed_param */
+    A_UINT32 tlv_header;
+    /** holds a wmi_dps_assisting_role_e value */
+    A_UINT32 config;
+} wmi_energy_mgmt_dps_assisting_role_config_cmd_fixed_param;
 
 
 
