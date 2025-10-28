@@ -282,6 +282,7 @@ typedef struct htc_ic_polldata {
 #pragma pack()
 
 /* export for other module and xiaomi_touch module */
+int notify_gesture_double_tap(void);
 #ifdef TOUCH_FOD_SUPPORT
 int update_fod_press_status(int value);
 #endif
