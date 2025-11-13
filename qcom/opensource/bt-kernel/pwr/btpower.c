@@ -2570,6 +2570,19 @@ static long bt_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	case BT_CMD_GETVAL_POWER_SRCS:
 		pr_err("BT_CMD_GETVAL_POWER_SRCS\n");
 
+		int stored_size = 0;
+
+		// First, safely read the size from the beginning of the userspace struct
+		if (copy_from_user(&stored_size, (void __user *)arg, sizeof(int))) {
+			pr_err("%s: Failed to read size from userspace\n", __func__);
+			return -EFAULT;
+		}
+
+		if(stored_size != -1 && stored_size!=sizeof(power_src)){
+			pr_err("%s: Expected size from userspace mismatch. (Parsed:%d, Expected:%d)\n", __func__, stored_size, (int)sizeof(power_src));
+			return -EFAULT;
+		}
+
 		power_src.platform_state[BT_SW_CTRL_GPIO_CURRENT] =
 			gpio_get_value(pwr_data->bt_gpio_sw_ctrl);
 		power_src.platform_state[BT_RESET_GPIO_CURRENT] =
