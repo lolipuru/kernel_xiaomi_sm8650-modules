@@ -1290,6 +1290,8 @@ typedef struct {
         /* upper 32 bits of the tx_bytes value */
         A_UINT32 high_32;
     } bytes_sent;
+    /* increment array based on AC */
+    A_UINT32 num_ppdu_tried_ota_per_ac[HTT_NUM_AC_WMM];
 } htt_stats_tx_pdev_cmn_tlv;
 /* preserve old name alias for new name consistent with the tag name */
 typedef htt_stats_tx_pdev_cmn_tlv htt_tx_pdev_stats_cmn_tlv;
@@ -2103,17 +2105,10 @@ typedef htt_stats_rx_tid_details_tlv htt_rx_tid_stats_tlv;
 typedef struct {
     htt_tlv_hdr_t tlv_hdr;
 
-    /**
-     * BIT [15: 0] : sw_peer_id
-     * BIT [31:16] : tid_num
-     */
-    union {
-        A_UINT32 sw_peer_id__tid_num;
-        struct {
-            A_UINT32 sw_peer_id : 16,
-                     tid_num    : 16;
-        };
-    };
+    /* Lower 4 bytes (bytes 0-3) of the MAC address */
+    A_UINT32 peer_mac_addr_31_0;
+    /* Upper 2 bytes (bytes 4-5) of MAC, and TID (1 byte) */
+    A_UINT32 peer_mac_addr_47_32_and_tid_num;
 
     /**
      * BIT [11: 0] : Starting Sequence number of the session,
@@ -2245,23 +2240,44 @@ typedef struct {
     A_UINT32 pn_size;
 } htt_stats_rx_peer_tid_reo_queue_ba_tlv;
 
-#define HTT_STATS_RX_PEER_TID_REO_QUEUE_BA_SW_PEER_ID_TID_DWORD_OFFSET 1
-
-/* Macros for sw_peer_id and tid_num */
-#define HTT_STATS_RX_PEER_TID_REO_QUEUE_BA_SW_PEER_ID_M 0x0000ffff
-#define HTT_STATS_RX_PEER_TID_REO_QUEUE_BA_SW_PEER_ID_S 0
-#define HTT_STATS_RX_PEER_TID_REO_QUEUE_BA_TID_NUM_M    0xffff0000
-#define HTT_STATS_RX_PEER_TID_REO_QUEUE_BA_TID_NUM_S    16
-
-#define HTT_STATS_RX_PEER_TID_REO_QUEUE_BA_SW_PEER_ID_GET(_var) \
-    (((_var) & HTT_STATS_RX_PEER_TID_REO_QUEUE_BA_SW_PEER_ID_M) >> \
-     HTT_STATS_RX_PEER_TID_REO_QUEUE_BA_SW_PEER_ID_S)
-
-#define HTT_STATS_RX_PEER_TID_REO_QUEUE_BA_SW_PEER_ID_SET(_var, _val) \
+#define HTT_STATS_RX_PEER_TID_REO_QUEUE_BA_MAC_ADDR_SET(_tlv_ptr, _mac_addr_ptr) \
     do { \
-        HTT_CHECK_SET_VAL(HTT_STATS_RX_PEER_TID_REO_QUEUE_BA_SW_PEER_ID, _val); \
-        ((_var) |= ((_val) << HTT_STATS_RX_PEER_TID_REO_QUEUE_BA_SW_PEER_ID_S)); \
+        A_UINT32 __packed_mac_47_32; \
+        /* Pack MAC addr bytes [0-3] into peer_mac_addr_31_0 */ \
+        (_tlv_ptr)->peer_mac_addr_31_0 = (A_UINT32) \
+            (((_mac_addr_ptr)[0] << 0)  | \
+             ((_mac_addr_ptr)[1] << 8)  | \
+             ((_mac_addr_ptr)[2] << 16) | \
+             ((_mac_addr_ptr)[3] << 24)); \
+        /*
+         * Pack MAC addr bytes [4-5] into the LOWER 16 bits of
+         * peer_mac_addr_47_32_and_tid_num
+         */ \
+        __packed_mac_47_32 = (A_UINT32) \
+            (((_mac_addr_ptr)[4] << 0)  | \
+             ((_mac_addr_ptr)[5] << 8)); \
+        /*
+         * Set lower 16 bits of peer_mac_addr_47_32_and_tid_num,
+         * preserving upper 16 bits (which includes the TID) if already set
+          */ \
+        (_tlv_ptr)->peer_mac_addr_47_32_and_tid_num &= ~0x0000FFFF; /* Clear existing MAC addr bits (lower 16) */ \
+        (_tlv_ptr)->peer_mac_addr_47_32_and_tid_num |= __packed_mac_47_32; \
     } while (0)
+#define HTT_STATS_RX_PEER_TID_REO_QUEUE_BA_MAC_ADDR_GET(_tlv_ptr, _dest_mac_addr_ptr) \
+    do { \
+        A_UINT32 __mac_31_0_val = (_tlv_ptr)->peer_mac_addr_31_0; \
+        /* Extract MAC bytes [4-5] from the LOWER 16 bits of peer_mac_addr_47_32_and_tid */ \
+        A_UINT32 __mac_47_32_val = ((_tlv_ptr)->peer_mac_addr_47_32_and_tid_num) & 0xFFFF; \
+        (_dest_mac_addr_ptr)[0] = (A_UINT8)((__mac_31_0_val  >>  0) & 0xFF); \
+        (_dest_mac_addr_ptr)[1] = (A_UINT8)((__mac_31_0_val  >>  8) & 0xFF); \
+        (_dest_mac_addr_ptr)[2] = (A_UINT8)((__mac_31_0_val  >> 16) & 0xFF); \
+        (_dest_mac_addr_ptr)[3] = (A_UINT8)((__mac_31_0_val  >> 24) & 0xFF); \
+        (_dest_mac_addr_ptr)[4] = (A_UINT8)((__mac_47_32_val >>  0) & 0xFF); \
+        (_dest_mac_addr_ptr)[5] = (A_UINT8)((__mac_47_32_val >>  8) & 0xFF); \
+    } while (0)
+
+#define HTT_STATS_RX_PEER_TID_REO_QUEUE_BA_TID_NUM_M    0x00FF0000 /* Mask for TID_NUM */
+#define HTT_STATS_RX_PEER_TID_REO_QUEUE_BA_TID_NUM_S    16         /* Shift for TID_NUM */
 
 #define HTT_STATS_RX_PEER_TID_REO_QUEUE_BA_TID_NUM_GET(_var) \
     (((_var) & HTT_STATS_RX_PEER_TID_REO_QUEUE_BA_TID_NUM_M) >> \
@@ -5492,6 +5508,15 @@ typedef struct {
     A_UINT32 tqm_enqueue_msdu_count;
     A_UINT32 tqm_dropped_msdu_count;
     A_UINT32 tqm_dequeue_msdu_count;
+
+    A_UINT32 tqm_enqueue_msdu_count_ac[HTT_NUM_AC_WMM];
+    A_UINT32 tqm_dropped_msdu_count_ac[HTT_NUM_AC_WMM];
+    A_UINT32 tqm_dequeue_msdu_count_ac[HTT_NUM_AC_WMM];
+    A_UINT32 remove_msdu_ac[HTT_NUM_AC_WMM];
+    A_UINT32 remove_mpdu_ac[HTT_NUM_AC_WMM];
+    A_UINT32 remove_msdu_ttl_ac[HTT_NUM_AC_WMM];
+    A_UINT32 remove_mpdu_ttl_ac[HTT_NUM_AC_WMM];
+    A_UINT32 remove_mpdu_retries_ac[HTT_NUM_AC_WMM];
 } htt_stats_tx_tqm_pdev_tlv;
 /* preserve old name alias for new name consistent with the tag name */
 typedef htt_stats_tx_tqm_pdev_tlv htt_tx_tqm_pdev_stats_tlv_v;
@@ -6575,6 +6600,7 @@ typedef struct {
 #define HTT_TX_PDEV_STATS_NUM_MCS_COUNTERS 12 /* 0-11 */
 #define HTT_TX_PDEV_STATS_NUM_EXTRA_MCS_COUNTERS 2 /* 12, 13 */
 #define HTT_TX_PDEV_STATS_NUM_EXTRA2_MCS_COUNTERS 2 /* 14, 15 */
+#define HTT_TX_PDEV_STATS_NUM_EXTRA3_MCS_COUNTERS 4 /* 1.1, 3.1, 4.1, 7.1 */
 #define HTT_TX_PDEV_STATS_NUM_GI_COUNTERS 4
 #define HTT_TX_PDEV_STATS_NUM_DCM_COUNTERS 5
 #define HTT_TX_PDEV_STATS_NUM_BW_COUNTERS 4
@@ -6865,6 +6891,13 @@ typedef struct {
     A_UINT32 npca_tx_su_punctured_mode[HTT_TX_PDEV_STATS_NUM_PUNCTURED_MODE_COUNTERS];
     /* STA side trigger stats */
     A_UINT32 trigger_type_11bn[HTT_TX_PDEV_STATS_NUM_11BN_TRIGGER_TYPES];
+    /* Stats for iMCS 1.1, 3.1, 4.1, 7.1 */
+    A_UINT32 tx_mcs_ext_3[HTT_TX_PDEV_STATS_NUM_EXTRA3_MCS_COUNTERS];
+
+/*
+ * NOTE: THIS STRUCT HAS ONLY 4 BYTES OF SPACE LEFT
+ * WITHIN THE TARGET'S HTT_STATS_TLV_MAX_LEN SIZE LIMIT.
+ */
 } htt_stats_tx_pdev_rate_stats_tlv;
 /* preserve old name alias for new name consistent with the tag name */
 typedef htt_stats_tx_pdev_rate_stats_tlv htt_tx_pdev_rate_stats_tlv;
@@ -7054,6 +7087,7 @@ typedef struct {
 #define HTT_RX_PDEV_STATS_NUM_MCS_COUNTERS 12 /* 0-11 */
 #define HTT_RX_PDEV_STATS_NUM_EXTRA_MCS_COUNTERS 2 /* 12, 13 */
 #define HTT_RX_PDEV_STATS_NUM_EXTRA2_MCS_COUNTERS 2 /* 14, 15 */
+#define HTT_RX_PDEV_STATS_NUM_EXTRA3_MCS_COUNTERS 4 /* 1.1, 3.1, 4.1, 7.1 */
 #define HTT_RX_PDEV_STATS_NUM_MCS_COUNTERS_EXT 14 /* 0-13 */
 #define HTT_RX_PDEV_STATS_NUM_GI_COUNTERS 4
 #define HTT_RX_PDEV_STATS_NUM_DCM_COUNTERS 5
@@ -7413,6 +7447,8 @@ typedef struct {
     A_UINT32 rx_2xldpc;
     A_UINT32 npca_rx_bw_ext[HTT_RX_PDEV_STATS_NUM_BN_BW_COUNTERS];
     A_UINT32 npca_rx_su_punctured_mode[HTT_RX_PDEV_STATS_NUM_PUNCTURED_MODE_COUNTERS];
+    /* Stats for iMCS 1.1, 3.1, 4.1, 7.1 */
+    A_UINT32 rx_mcs_ext_3[HTT_RX_PDEV_STATS_NUM_EXTRA3_MCS_COUNTERS];
 } htt_stats_rx_pdev_rate_ext_stats_tlv;
 /* preserve old name alias for new name consistent with the tag name */
 typedef htt_stats_rx_pdev_rate_ext_stats_tlv htt_rx_pdev_rate_ext_stats_tlv;
@@ -8193,6 +8229,7 @@ typedef struct {
         /* upper 32 bits of the rx_bytes value */
         A_UINT32 high_32;
     } bytes_received;
+    A_UINT32  rx_msdu_cnt_ac[HTT_NUM_AC_WMM];
 } htt_stats_rx_pdev_fw_stats_tlv;
 /* preserve old name alias for new name consistent with the tag name */
 typedef htt_stats_rx_pdev_fw_stats_tlv htt_rx_pdev_fw_stats_tlv;
@@ -9442,6 +9479,9 @@ typedef struct {
     htt_tx_rate_stats_t npca_per_bw[HTT_TX_PDEV_STATS_NUM_BN_BW_COUNTERS];
 
     htt_tx_rate_stats_t npca_per_tx_su_punctured_mode[HTT_TX_PDEV_STATS_NUM_PUNCTURED_MODE_COUNTERS];
+
+    /* PER stats for iMCS 1.1, 3.1, 4.1, 7.1 */
+    htt_tx_rate_stats_t per_mcs_ext_3[HTT_TX_PDEV_STATS_NUM_EXTRA3_MCS_COUNTERS];
 } htt_stats_per_rate_stats_tlv;
 /* preserve old name alias for new name consistent with the tag name */
 typedef htt_stats_per_rate_stats_tlv htt_tx_rate_stats_per_tlv;

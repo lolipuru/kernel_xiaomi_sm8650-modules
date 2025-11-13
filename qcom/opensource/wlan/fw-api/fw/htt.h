@@ -5521,6 +5521,9 @@ enum htt_srng_ring_id {
     HTT_LPASS_TO_FW_RXBUF_RING,    /* new LPASS to FW refill ring to recycle rx buffers */
     HTT_HOST3_TO_FW_RXBUF_RING,    /* used by host for EasyMesh feature */
     HTT_HOST4_TO_FW_RXBUF_RING,    /* fourth ring used by host to provide buffers for MGMT packets */
+    HTT_RXDMA_WBM_BUF0_RING,       /* used for SFE Datapath */
+    HTT_RXDMA_WBM_BUF1_RING,       /* used for PPE Datapath */
+    HTT_RXDMA_WBM_BUF2_RING,       /* used for MGMT path */
     /* Add Other SRING which can't be directly configured by host software above this line */
 };
 
@@ -6182,6 +6185,17 @@ PREPACK struct htt_rx_ring_selection_cfg_t {
     A_UINT32 packet_type_enable_data_flags_3;
     A_UINT32 packet_type_enable_data_fpmo_flags0;
     A_UINT32 packet_type_enable_data_fpmo_flags1;
+
+    /* rdi_based_source_cfg:
+     * Each bit position in rdi_based_source_cfg represents RDI
+     * (REO Destination Indication).
+     *
+     * 1 in specific RDI position represents, for the given RDI position,
+     * ring id in the ring setup msg has to be configured as source buf.
+     *
+     * Below Field only applies for HTT_RXDMA_WBM_BUF0/1/2_RING
+     */
+    A_UINT32 rdi_based_source_cfg;
 } POSTPACK;
 
 #define HTT_RX_RING_SELECTION_CFG_SZ    (sizeof(struct htt_rx_ring_selection_cfg_t))
