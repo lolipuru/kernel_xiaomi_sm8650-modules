@@ -22,8 +22,19 @@ ifeq ($(CONFIG_ARCH_BENGAL), y)
 endif
 
 ifeq ($(CONFIG_ARCH_PINEAPPLE), y)
-	include $(TOUCH_ROOT)/config/gki_pineappletouch.conf
-	LINUX_INC += -include $(TOUCH_ROOT)/config/gki_pineappletouchconf.h
+	ifeq ($(CONFIG_TARGET_PRODUCT_HOUJI), y)
+		include $(TOUCH_ROOT)/config/gki_houjitouch.conf
+		LINUX_INC += -include $(TOUCH_ROOT)/config/gki_houjitouchconf.h
+	else ifeq ($(CONFIG_TARGET_PRODUCT_SHENNONG), y)
+		include $(TOUCH_ROOT)/config/gki_shennongtouch.conf
+		LINUX_INC += -include $(TOUCH_ROOT)/config/gki_shennongtouchconf.h
+	else ifeq ($(CONFIG_TARGET_PRODUCT_AURORA), y)
+		include $(TOUCH_ROOT)/config/gki_auroratouch.conf
+		LINUX_INC += -include $(TOUCH_ROOT)/config/gki_auroratouchconf.h
+	else
+		include $(TOUCH_ROOT)/config/gki_pineappletouch.conf
+		LINUX_INC += -include $(TOUCH_ROOT)/config/gki_pineappletouchconf.h
+	endif
 endif
 
 ifeq ($(CONFIG_ARCH_VOLCANO), y)
