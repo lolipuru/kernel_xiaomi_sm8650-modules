@@ -286,28 +286,12 @@ ifeq ($(CONFIG_TOUCHSCREEN_SYNA_TCM2), y)
 	LINUX_INC += -include $(TOUCH_ROOT)/synaptics_tcm2/syna_tcm2.h
 	LINUX_INC += -include $(TOUCH_ROOT)/synaptics_tcm2/syna_xiaomi_driver.h
 
-	ifeq (1, $(strip $(CONFIG_TOUCH_FACTORY_SELECT)))
-	KBUILD_CPPFLAGS += -DCONFIG_TOUCH_FACTORY_BUILD
-	endif
-
-	ifeq (1, $(strip $(CONFIG_TOUCH_THP_SUPPORT)))
 	KBUILD_CPPFLAGS += -DTOUCH_THP_SUPPORT
-	endif
-
-	ifeq (1, $(strip $(CONFIG_TOUCH_FOD_SUPPORT)))
 	KBUILD_CPPFLAGS += -DTOUCH_FOD_SUPPORT
-	endif
-
-	ifeq (1, $(strip $(CONFIG_TOUCH_KNOCK_SUPPORT)))
-	KBUILD_CPPFLAGS += -DTOUCH_KNOCK_SUPPORT
-	endif
+	KBUILD_CPPFLAGS += -DTOUCH_SPI_CS_CLK_DELAY
 
 	ifeq (1, $(strip $(CONFIG_TOUCH_SENSORHUB_SUPPORT)))
 	KBUILD_CPPFLAGS += -DTOUCH_SENSORHUB_SUPPORT
-	endif
-
-	ifeq (1, $(strip $(CONFIG_TOUCH_SPI_CS_CLK_DELAY)))
-	KBUILD_CPPFLAGS += -DTOUCH_SPI_CS_CLK_DELAY
 	endif
 
 	synaptics_tcm2-y := \
