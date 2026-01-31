@@ -55,7 +55,7 @@
 #define CSIPHY_CDR_LN_SETTINGS           BIT(11)
 #define CSIPHY_SHORT_CHANNEL_PARAMS      BIT(12)
 #define CSIPHY_STANDARD_CHANNEL_PARAMS   BIT(13)
-#define CSIPHY_DNP_PARAMS                BIT(14)
+#define CSIPHY_MODIFY_SETTING            BIT(14)
 
 #define CSIPHY_MAX_INSTANCES_PER_PHY     3
 
@@ -325,6 +325,7 @@ struct csiphy_ctrl_t {
  * @use_hw_client_voting       : Whether to use hw client voting for clk on chipsets with cesta
  * @is_drv_config_en           : If drv is configured in CSID
  * @channel_type              : Channel type for different channel settings
+ * @is_modify_onthego          :  flag to modify mipi parameters
  */
 struct cam_csiphy_param {
 	uint16_t                         lane_assign;
@@ -344,6 +345,7 @@ struct cam_csiphy_param {
 	bool                             use_hw_client_voting;
 	bool                             is_drv_config_en;
 	uint32_t                         channel_type;
+	bool                             is_modify_onthego; //add by xiaomi
 };
 
 struct csiphy_work_queue {
