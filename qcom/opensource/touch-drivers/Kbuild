@@ -30,7 +30,10 @@ ifeq ($(CONFIG_ARCH_PINEAPPLE), y)
 		LINUX_INC += -include $(TOUCH_ROOT)/config/gki_shennongtouchconf.h
 	else ifeq ($(CONFIG_TARGET_PRODUCT_AURORA), y)
 		include $(TOUCH_ROOT)/config/gki_auroratouch.conf
-		LINUX_INC += -include $(TOUCH_ROOT)/config/gki_auroratouchconf.h
+		LINUX_INC += -include $(TOUCH_ROOT)/config/gki_auroratouchconf.
+	else ifeq ($(CONFIG_TARGET_PRODUCT_MANET), y)
+		include $(TOUCH_ROOT)/config/gki_manettouch.conf
+		LINUX_INC += -include $(TOUCH_ROOT)/config/gki_manettouchconf.h
 	else
 		include $(TOUCH_ROOT)/config/gki_pineappletouch.conf
 		LINUX_INC += -include $(TOUCH_ROOT)/config/gki_pineappletouchconf.h
